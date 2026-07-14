@@ -5,12 +5,14 @@ import type { PreApprovalType } from './enums'
 export const visitorEntrySchema = z.object({
   id: z.string().uuid(),
   apartmentId: z.string().uuid(),
+  apartmentLabel: z.string().nullable().optional(),
   preApprovalId: z.string().uuid().nullable(),
   visitorName: z.string(),
   visitorPhone: z.string().nullable(),
   type: visitorTypeSchema,
   status: visitorStatusSchema,
   purpose: z.string().nullable(),
+  partnerName: z.string().nullable().optional(),
   vehicleNumber: z.string().nullable(),
   photoUrl: z.string().nullable(),
   approvedBy: z.string().uuid().nullable(),
@@ -29,7 +31,9 @@ export const createVisitorEntrySchema = z.object({
   visitorName: z.string().min(1),
   visitorPhone: z.string().optional(),
   type: visitorTypeSchema.default('GUEST'),
-  purpose: z.string().optional(),
+  purpose: z.string().min(1).optional(),
+  partnerName: z.string().min(1).optional(),
+  photoUrl: z.string().url().optional(),
   vehicleNumber: z.string().optional(),
 })
 

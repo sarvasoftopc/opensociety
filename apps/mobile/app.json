@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "OpenSociety",
-    "slug": "opensociety",
+    "name": "SarvaSociety",
+    "slug": "sarvasociety",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,9 +13,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sarvasoft.sarvasociety",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "package": "com.sarvasoft.sarvasociety",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -24,13 +28,17 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "SarvaSociety",
+      "shortName": "Sarva",
+      "themeColor": "#0f1b31",
+      "backgroundColor": "#eef4fb"
     },
     "plugins": [
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow OpenSociety to use the camera to scan visitor pre-approval QR codes at the gate."
+          "cameraPermission": "Allow SarvaSociety to use the camera to scan visitor pre-approval QR codes at the gate."
         }
       ]
     ]

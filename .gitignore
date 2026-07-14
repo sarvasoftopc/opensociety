@@ -26,6 +26,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+firebase-service-account.json
+**/firebase-service-account.json
 
 # local-only notes / scratch (never committed)
 .local/
@@ -34,3 +36,9 @@ yarn-error.log*
 .turbo
 
 dist
+
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/

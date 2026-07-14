@@ -6,6 +6,8 @@ export const guardDutySessionSchema = z.object({
   clockInAt: z.string(),
   clockInLat: z.number().nullable(),
   clockInLng: z.number().nullable(),
+  clockInPhotoUrl: z.string().nullable().optional(),
+  checkpoint: z.string().nullable().optional(),
   clockOutAt: z.string().nullable(),
   clockOutLat: z.number().nullable(),
   clockOutLng: z.number().nullable(),
@@ -14,7 +16,12 @@ export const guardDutySessionSchema = z.object({
   guardName: z.string().optional(),
 })
 
-const coords = { lat: z.number().min(-90).max(90).optional(), lng: z.number().min(-180).max(180).optional() }
+const coords = {
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(-180).max(180).optional(),
+  checkpoint: z.string().min(1).optional(),
+  clockInPhotoUrl: z.string().url().optional(),
+}
 export const clockInSchema = z.object(coords)
 export const clockOutSchema = z.object(coords)
 

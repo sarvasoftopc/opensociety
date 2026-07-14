@@ -1,0 +1,1088 @@
+# TASK-001 Transcript
+
+## 2026-07-13 19:35:09 IST
+
+- Task ID: `TASK-001`
+- User request summary: Port the full backend to FastAPI Python with Supabase-based auth, preserve existing contracts so the web app remains unchanged, validate locally through the web app, and redesign the platform from single-tenant per society to one shared multi-tenant deployment. Then fork the repo into the user's GitHub account and use that fork.
+- Assistant action summary: Identified the repo from the README, verified the current branch and worktree state, reviewed the backend/auth/schema contract surface, checked recent upstream PR history, created the GitHub fork, added the fork remote locally, created a dedicated task branch, and documented the migration as a major architecture task.
+- Sub-task being handled: Task setup, repository safety checks, and architecture discovery.
+- Files inspected:
+  - `README.md`
+  - `apps/api/README.md`
+  - `apps/api/src/index.ts`
+  - `apps/api/src/middleware.ts`
+  - `packages/shared/src/index.ts`
+  - `packages/db/schema.dbml`
+  - `packages/db/src/schema/society-config.ts`
+  - `package.json`
+  - `apps/api/package.json`
+  - `apps/web/package.json`
+- Files modified:
+  - `ai/TASK.md`
+  - `ai/TASK_INDEX.md`
+  - `ai/chat/INDEX.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+  - `ai/RECOMMENDED_ARCHITECTURE.md`
+- Decision made: Treat the request as a new backend architecture task on a dedicated branch in the user's fork. Do not start the actual platform rewrite until the migration shape is documented, because the change crosses runtime, auth, and tenancy boundaries.
+- Validation performed:
+  - `git status --short --branch`
+  - `gh pr list --repo opencore-x/opensociety --state all --limit 30`
+  - `gh repo fork opencore-x/opensociety --remote-name fork --clone=false`
+  - `git remote add fork https://github.com/sarvasoftopc/opensociety.git`
+  - Source inspection of route registration, middleware, and schema files
+- Blockers:
+  - None for planning/setup.
+- Pending items:
+  - Finalize migration architecture details and implementation phases.
+  - Start contract inventory and backend port scaffolding.
+  - Validate the web app against the new backend locally once porting begins.
+
+## 2026-07-13 19:52:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Approved proceeding with architecture changes and moving ahead with FastAPI + Supabase.
+- Assistant action summary: Inspected the frontend API client, representative backend routes, workspace structure, and repo ignore/env conventions. Added a new `apps/api-fastapi` service scaffold with FastAPI app wiring, tenant resolution, Supabase-oriented auth resolution, mirrored route-group structure, placeholder compatibility endpoints, health contract tests, and supporting docs.
+- Sub-task being handled: Initial implementation scaffold for the future FastAPI multi-tenant backend.
+- Files inspected:
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/lib/contracts.test.ts`
+  - `apps/api/src/routes/society.ts`
+  - `apps/api/src/routes/users.ts`
+  - `apps/api/src/routes/visitors.ts`
+  - `pnpm-workspace.yaml`
+  - `turbo.json`
+  - `.gitignore`
+  - `.env.example`
+- Files modified:
+  - `README.md`
+  - `.gitignore`
+  - `apps/api-fastapi/.gitignore`
+  - `apps/api-fastapi/.env.example`
+  - `apps/api-fastapi/README.md`
+  - `apps/api-fastapi/pyproject.toml`
+  - `apps/api-fastapi/app/main.py`
+  - `apps/api-fastapi/app/api/deps.py`
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/app/api/routes/health.py`
+  - `apps/api-fastapi/app/api/routes/placeholders.py`
+  - `apps/api-fastapi/app/api/routes/society.py`
+  - `apps/api-fastapi/app/api/routes/users.py`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/core/auth.py`
+  - `apps/api-fastapi/app/core/config.py`
+  - `apps/api-fastapi/app/core/tenant.py`
+  - `apps/api-fastapi/app/schemas/society.py`
+  - `apps/api-fastapi/app/schemas/users.py`
+  - `apps/api-fastapi/app/schemas/visitors.py`
+  - `apps/api-fastapi/tests/test_health_contract.py`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the existing worker API untouched while building the new FastAPI backend alongside it. Port route groups incrementally behind the same public contract instead of attempting a risky full replacement in one step.
+- Validation performed:
+  - Structural source inspection of current frontend and backend route contracts
+  - Scaffolded health-contract tests for the new FastAPI service
+- Blockers:
+  - Contract-parity implementation is still pending for the business routes.
+- Pending items:
+  - Add persistent models and database integration.
+  - Port domain routes one group at a time.
+  - Validate the unchanged web app against the FastAPI service locally.
+
+## 2026-07-13 20:05:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Proceed with the next implementation changes.
+- Assistant action summary: Inspected the exact shared society and user contracts, added SQLAlchemy database/session foundations for the FastAPI app, implemented tenant-aware `/society` persistence, and replaced the basic health-only test with a fuller app-contract test covering root, health, auth enforcement, and society create/update flows.
+- Sub-task being handled: First persistence-backed FastAPI route implementation.
+- Files inspected:
+  - `packages/shared/src/society.ts`
+  - `packages/shared/src/user.ts`
+  - `packages/db/src/schema/users.ts`
+  - `packages/db/src/schema/society-config.ts`
+- Files modified:
+  - `apps/api-fastapi/app/api/deps.py`
+  - `apps/api-fastapi/app/api/routes/society.py`
+  - `apps/api-fastapi/app/main.py`
+  - `apps/api-fastapi/app/db/base.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/db/session.py`
+  - `apps/api-fastapi/app/schemas/society.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `apps/api-fastapi/README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Start with `/society` because it is the simplest tenant-owned contract and gives us a reusable database/tenant foundation without entangling more complex workflows yet.
+- Validation performed:
+  - Python compile pass for FastAPI app and tests
+  - `python3 -m pytest apps/api-fastapi/tests/test_app_contracts.py` attempted for persistence-backed route tests, but blocked because `pytest` is not installed in the current Python runtime
+- Blockers:
+  - Broader business routes still depend on additional models and service-layer porting.
+  - FastAPI test dependencies are not installed in the current runtime yet.
+- Pending items:
+  - Port `users` next so approval/admin flows can run against the new backend.
+  - Decide whether to align response field casing globally via aliases or keep explicit schema shaping route by route.
+  - Begin local webapp checks once a few more required routes exist.
+
+## 2026-07-13 20:19:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Proceed with the next implementation changes and collect all SQL under a scripts folder in execution order.
+- Assistant action summary: Inspected user/apartment/residency schema dependencies, implemented tenant-aware `users` admin flows and apartment directory reads in the FastAPI service, expanded contract tests for those routes, and created an ordered repo-root `scripts/` migration set for the multi-tenant foundation rollout.
+- Sub-task being handled: Admin/user backend porting plus ordered SQL packaging.
+- Files inspected:
+  - `packages/db/src/schema/enums.ts`
+  - `packages/db/src/schema/residencies.ts`
+  - `packages/db/src/schema/apartments.ts`
+  - `packages/db/src/schema/users.ts`
+  - `packages/shared/src/apartment.ts`
+  - `apps/api/src/routes/apartments.ts`
+  - `apps/web/src/routes/admin/residents.tsx`
+- Files modified:
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/app/api/routes/apartments.py`
+  - `apps/api-fastapi/app/api/routes/placeholders.py`
+  - `apps/api-fastapi/app/api/routes/users.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/apartments.py`
+  - `apps/api-fastapi/app/schemas/users.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `apps/api-fastapi/README.md`
+  - `scripts/001_create_multi_tenant_foundation.sql`
+  - `scripts/002_tenantize_society_config.sql`
+  - `scripts/003_tenantize_apartments.sql`
+  - `scripts/004_tenantize_users.sql`
+  - `scripts/005_tenantize_residencies.sql`
+  - `scripts/006_backfill_default_tenant.sql`
+  - `scripts/007_enforce_not_null_and_fk_guards.sql`
+  - `scripts/README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Add `/apartments` read support now because the unchanged web resident-approval flow depends on it alongside `/users`.
+- Validation performed:
+  - `python3 -m compileall apps/api-fastapi/app apps/api-fastapi/tests`
+  - Verified ordered SQL files exist under `scripts/`
+- Blockers:
+  - Remaining domain routes are still pending.
+  - Python test dependencies are still not installed in the active runtime.
+- Pending items:
+  - Install FastAPI test dependencies and run the expanded test suite.
+  - Port the next domain groups needed for local web validation.
+  - Extend SQL scripts to the remaining tenant-scoped tables as those routes are ported.
+
+## 2026-07-13 21:40:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Install everything needed for Python/environment setup and proceed with implementation.
+- Assistant action summary: Created a working Python 3.12 virtual environment in `apps/api-fastapi/.venv`, installed runtime and dev dependencies, ran the FastAPI contract tests successfully, and then implemented apartment create, bulk import, and update routes so the admin apartments flow can execute against the new backend.
+- Sub-task being handled: Environment setup plus apartment mutation implementation.
+- Files inspected:
+  - `apps/api-fastapi/pyproject.toml`
+  - `apps/web/src/routes/admin/apartments.tsx`
+  - `apps/web/src/lib/apartments-csv.ts`
+  - `packages/shared/src/apartment.ts`
+- Files modified:
+  - `apps/api-fastapi/app/api/routes/apartments.py`
+  - `apps/api-fastapi/app/schemas/apartments.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Use `python3.12` for the project venv because the default Homebrew `python3.14` runtime was broken at the `ensurepip/pyexpat` level and would have slowed implementation unnecessarily.
+- Validation performed:
+  - `python3.12 -m venv .venv`
+  - `. .venv/bin/activate && python -m pip install -e '.[dev]'`
+  - `. .venv/bin/activate && pytest tests/test_app_contracts.py`
+- Blockers:
+  - Local web validation still needs additional route groups beyond society/users/apartments.
+- Pending items:
+  - Port the next domain groups needed for local web validation.
+  - Extend SQL scripts to the remaining tenant-scoped tables as those routes are ported.
+
+## 2026-07-13 22:05:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Proceed with implementation and clarify what Supabase access and SQL execution will be needed.
+- Assistant action summary: Implemented the FastAPI visitor log and pre-approval route group, added visitor/pre-approval tenant models and SQL migration scripts, expanded the venv-backed test suite, fixed fixture-ordering issues, and re-ran the full FastAPI contract suite successfully.
+- Sub-task being handled: Visitor workflow port plus access-planning for the next stage.
+- Files inspected:
+  - `packages/shared/src/visitor.ts`
+  - `packages/shared/src/visitor-status.ts`
+  - `apps/web/src/routes/admin/visitors.tsx`
+  - `apps/web/src/routes/admin/pre-approvals.tsx`
+  - `apps/api/src/routes/visitors.ts`
+- Files modified:
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/visitors.py`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `scripts/008_tenantize_visitor_pre_approvals.sql`
+  - `scripts/009_tenantize_visitor_entries.sql`
+  - `scripts/010_backfill_visitor_tenant.sql`
+  - `scripts/011_enforce_visitor_tenant_not_null.sql`
+  - `scripts/README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the visitor implementation focused on the core admin/resident/guard flows the current web app already uses, and defer parking-coupled side effects until the parking route group is ported.
+- Validation performed:
+  - `. .venv/bin/activate && pytest tests/test_app_contracts.py`
+- Blockers:
+  - Live Supabase auth verification is not wired yet because project credentials and a target Supabase instance have not been provided.
+- Pending items:
+  - Port the next domain groups needed for local web validation.
+  - Extend SQL scripts to the remaining tenant-scoped tables as those routes are ported.
+  - Wire real Supabase token verification and auth user mapping once project access is available.
+
+## 2026-07-13 22:35:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Proceed with full implementation and keep functionality working.
+- Assistant action summary: Implemented FastAPI notice and guard route groups, added the underlying tenant-aware models and schemas, extended the ordered SQL scripts through notice and guard tables, and expanded the venv-backed test suite to cover these admin flows successfully.
+- Sub-task being handled: Notice and guard admin flow porting.
+- Files inspected:
+  - `apps/web/src/routes/admin/notices.tsx`
+  - `apps/api/src/routes/notices.ts`
+  - `packages/shared/src/notice.ts`
+  - `apps/web/src/routes/admin/guards.tsx`
+  - `apps/api/src/routes/guards.ts`
+  - `packages/shared/src/guard.ts`
+  - `packages/shared/src/guard-device.ts`
+  - `packages/db/src/schema/notices.ts`
+  - `packages/db/src/schema/notice-reads.ts`
+  - `packages/db/src/schema/guards.ts`
+  - `packages/db/src/schema/guard-devices.ts`
+- Files modified:
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/app/api/routes/placeholders.py`
+  - `apps/api-fastapi/app/api/routes/notices.py`
+  - `apps/api-fastapi/app/api/routes/guards.py`
+  - `apps/api-fastapi/app/schemas/notices.py`
+  - `apps/api-fastapi/app/schemas/guards.py`
+  - `apps/api-fastapi/app/schemas/guard_devices.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `scripts/012_tenantize_notices.sql`
+  - `scripts/013_tenantize_notice_reads.sql`
+  - `scripts/014_tenantize_guards.sql`
+  - `scripts/015_tenantize_guard_devices.sql`
+  - `scripts/016_backfill_notice_and_guard_tenant.sql`
+  - `scripts/017_enforce_notice_and_guard_tenant_not_null.sql`
+  - `scripts/README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Focus on the admin-visible subset of notices and guards first, because those flows are directly exercised by the current web app and give us more local functional coverage faster than lower-level duty/reporting paths.
+- Validation performed:
+  - `. .venv/bin/activate && pytest tests/test_app_contracts.py`
+- Blockers:
+  - Live auth and storage-backed attachment flows still need real Supabase/project access or equivalent environment credentials.
+- Pending items:
+  - Port the next domain groups needed for local web validation.
+  - Extend SQL scripts to the remaining tenant-scoped tables as those routes are ported.
+  - Wire real Supabase token verification and auth user mapping once project access is available.
+
+## 2026-07-13 23:20:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Proceed with full implementation and continue beyond scaffolding.
+- Assistant action summary: Implemented FastAPI maintenance tickets, vehicle registry, vehicle gate log, parking inventory/directory/visitor-pool routes, tenant-aware models and schemas for those domains, wired visitor parking occupancy into visitor check-in/check-out, extended ordered SQL migrations through vehicles and parking, fixed dev-auth user resolution to map real DB users by `id` or `clerk_id`, and re-ran the full contract suite successfully.
+- Sub-task being handled: Ticket, vehicle, and parking workflow porting with tenant-safe uniqueness and compatibility checks.
+- Files inspected:
+  - `packages/shared/src/ticket.ts`
+  - `packages/shared/src/ticket-status.ts`
+  - `packages/shared/src/vehicle.ts`
+  - `packages/shared/src/parking.ts`
+  - `packages/db/src/schema/maintenance-tickets.ts`
+  - `packages/db/src/schema/vehicles.ts`
+  - `packages/db/src/schema/parking-slots.ts`
+  - `apps/api/src/routes/tickets.ts`
+  - `apps/api/src/routes/vehicles.ts`
+  - `apps/api/src/routes/parking.ts`
+  - `apps/web/src/routes/admin/tickets.tsx`
+  - `apps/web/src/routes/admin/vehicles.tsx`
+  - `apps/web/src/routes/admin/parking.tsx`
+  - `apps/web/src/lib/api.ts`
+- Files modified:
+  - `apps/api-fastapi/app/api/deps.py`
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/app/api/routes/parking.py`
+  - `apps/api-fastapi/app/api/routes/placeholders.py`
+  - `apps/api-fastapi/app/api/routes/tickets.py`
+  - `apps/api-fastapi/app/api/routes/vehicles.py`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/parking.py`
+  - `apps/api-fastapi/app/schemas/tickets.py`
+  - `apps/api-fastapi/app/schemas/vehicles.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `apps/api-fastapi/README.md`
+  - `scripts/018_tenantize_maintenance_tickets.sql`
+  - `scripts/019_backfill_maintenance_tickets_tenant.sql`
+  - `scripts/020_enforce_maintenance_tickets_tenant_not_null.sql`
+  - `scripts/021_tenantize_vehicles.sql`
+  - `scripts/022_tenantize_parking_slots.sql`
+  - `scripts/023_backfill_vehicle_and_parking_tenant.sql`
+  - `scripts/024_enforce_vehicle_and_parking_tenant_not_null.sql`
+  - `scripts/README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep tenant uniqueness scoped per society for `vehicles.registration_number` and `parking_slots.slot_number` so the long-term multi-tenant SaaS model does not accidentally enforce global uniqueness across unrelated societies.
+- Validation performed:
+  - `. .venv/bin/activate && pytest tests/test_app_contracts.py`
+- Blockers:
+  - Live web-app validation is still pending because billing, payments, house-help, uploads, reports, and related remaining routes are not ported yet.
+- Pending items:
+  - Port the next domain groups needed for local web validation.
+  - Extend SQL scripts to the remaining tenant-scoped tables as those routes are ported.
+  - Wire real Supabase token verification and auth user mapping once project access is available.
+
+## 2026-07-14 00:10:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Finish the full code work first, then provide the SQL/scripts to run afterward.
+- Assistant action summary: Completed the remaining FastAPI route groups for billing, payments, bill-config, reports, house-help, uploads, webhooks, and guard-duty; added local PDF generation, local upload storage, remaining tenant-aware models/schemas, extended ordered SQL through `035`, sanitized `.env.example`, and expanded the contract suite to 29 passing tests.
+- Sub-task being handled: Final backend route-surface completion and migration-script completion.
+- Files inspected:
+  - `packages/shared/src/finance.ts`
+  - `packages/shared/src/house-help.ts`
+  - `packages/shared/src/house-help-assignment.ts`
+  - `packages/shared/src/house-help-entry.ts`
+  - `packages/shared/src/house-help-review.ts`
+  - `packages/shared/src/house-help-trust.ts`
+  - `packages/shared/src/visitor-analytics.ts`
+  - `packages/shared/src/ops-analytics.ts`
+  - `packages/shared/src/guard-duty.ts`
+  - `packages/db/src/schema/finance.ts`
+  - `packages/db/src/schema/bill-config.ts`
+  - `packages/db/src/schema/house-help.ts`
+  - `packages/db/src/schema/house-help-assignments.ts`
+  - `packages/db/src/schema/house-help-entries.ts`
+  - `packages/db/src/schema/house-help-reviews.ts`
+  - `packages/db/src/schema/guard-duty-sessions.ts`
+  - `apps/api/src/routes/bills.ts`
+  - `apps/api/src/routes/payments.ts`
+  - `apps/api/src/routes/bill-config.ts`
+  - `apps/api/src/routes/reports.ts`
+  - `apps/api/src/routes/house-help.ts`
+  - `apps/api/src/routes/uploads.ts`
+  - `apps/api/src/routes/webhooks.ts`
+  - `apps/api/src/routes/guards.ts`
+- Files modified:
+  - `apps/api-fastapi/.env.example`
+  - `apps/api-fastapi/README.md`
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/app/api/routes/bill_config.py`
+  - `apps/api-fastapi/app/api/routes/bills.py`
+  - `apps/api-fastapi/app/api/routes/guards.py`
+  - `apps/api-fastapi/app/api/routes/house_help.py`
+  - `apps/api-fastapi/app/api/routes/payments.py`
+  - `apps/api-fastapi/app/api/routes/placeholders.py`
+  - `apps/api-fastapi/app/api/routes/reports.py`
+  - `apps/api-fastapi/app/api/routes/uploads.py`
+  - `apps/api-fastapi/app/api/routes/webhooks.py`
+  - `apps/api-fastapi/app/core/config.py`
+  - `apps/api-fastapi/app/core/simple_pdf.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/finance.py`
+  - `apps/api-fastapi/app/schemas/guard_duty.py`
+  - `apps/api-fastapi/app/schemas/house_help.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `scripts/025_tenantize_bill_config.sql`
+  - `scripts/026_tenantize_finance_tables.sql`
+  - `scripts/027_backfill_finance_tenant.sql`
+  - `scripts/028_enforce_finance_tenant_not_null.sql`
+  - `scripts/029_tenantize_house_help.sql`
+  - `scripts/030_tenantize_house_help_children.sql`
+  - `scripts/031_backfill_house_help_tenant.sql`
+  - `scripts/032_enforce_house_help_tenant_not_null.sql`
+  - `scripts/033_tenantize_guard_duty_sessions.sql`
+  - `scripts/034_backfill_guard_duty_tenant.sql`
+  - `scripts/035_enforce_guard_duty_tenant_not_null.sql`
+  - `scripts/README.md`
+  - `README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Treat the current web/API route surface as the finish line for code completion, then stop before database execution so migration runs remain under user control as requested.
+- Validation performed:
+  - `. .venv/bin/activate && python -m compileall app tests`
+  - `. .venv/bin/activate && pytest tests/test_app_contracts.py`
+- Blockers:
+  - None for code completion.
+- Pending items:
+  - Run the ordered SQL scripts against the real database.
+  - Point the local web app at `apps/api-fastapi` and do browser-level end-to-end validation.
+  - Validate real Supabase JWTs and webhook signatures with environment-backed credentials.
+
+## 2026-07-14 00:25:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Confirm the Supabase details location and provide one SQL file that can be run directly on Supabase.
+- Assistant action summary: Verified that `apps/api-fastapi/.env.example` currently still contains placeholder values rather than live credentials, generated `scripts/999_all_in_one_supabase_migration.sql` from ordered scripts `001` through `035`, and documented the single-file option in `scripts/README.md`.
+- Sub-task being handled: Supabase migration execution packaging.
+- Files inspected:
+  - `apps/api-fastapi/.env.example`
+  - `scripts/README.md`
+  - `scripts/001_create_multi_tenant_foundation.sql` through `scripts/035_enforce_guard_duty_tenant_not_null.sql`
+- Files modified:
+  - `scripts/999_all_in_one_supabase_migration.sql`
+  - `scripts/README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the numbered scripts as the canonical migration chain, and generate a bundled file for convenience so Supabase SQL Editor can execute the same migration in one run.
+- Validation performed:
+  - Verified the generated bundle starts at `001` and ends at `035`
+- Blockers:
+  - None for migration packaging.
+- Pending items:
+  - User to run either the ordered script chain or the bundled `999_all_in_one_supabase_migration.sql`.
+  - Browser-level local web app validation after database migration.
+
+## 2026-07-14 00:40:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Finish the implementation end to end, remove Clerk dependence in practice, keep Supabase-only backend/database usage, and provide a working local frontend URL for testing.
+- Assistant action summary: Fixed remaining FastAPI regressions for visitor UUID writes and local tenant resolution, converted webhook handling to a Supabase-era compatibility bridge, added `/auth/me`, completed the Supabase auth session wiring for web/mobile, added role-separated `/app`, `/admin`, `/resident`, and `/guard` shells on web, fixed local dev auth fallback behavior, restarted the local backend/web processes, and browser-validated the route shells against the live FastAPI backend.
+- Sub-task being handled: Live local validation and Supabase-only behavior hardening.
+- Files inspected:
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/api/routes/webhooks.py`
+  - `apps/api-fastapi/app/api/routes/auth.py`
+  - `apps/api-fastapi/app/core/tenant.py`
+  - `apps/api-fastapi/app/api/deps.py`
+  - `apps/api-fastapi/app/db/session.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `apps/web/src/routes/__root.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/routes/admin.tsx`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/components/auth-controls.tsx`
+  - `apps/mobile/api/client.ts`
+- Files modified:
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/api/routes/webhooks.py`
+  - `apps/api-fastapi/app/core/tenant.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `apps/api-fastapi/README.md`
+  - `README.md`
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/components/auth-controls.tsx`
+  - `apps/web/src/routes/__root.tsx`
+  - `apps/mobile/api/client.ts`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the legacy `/webhooks/clerk` route as a compatibility alias while removing Clerk dependency from the actual event-handling logic, so the contract stays stable during cutover.
+- Validation performed:
+  - `cd apps/api-fastapi && . .venv/bin/activate && pytest -q tests/test_app_contracts.py`
+  - `cd apps/web && pnpm run check-types`
+  - `cd apps/mobile && pnpm run check-types`
+  - `curl http://127.0.0.1:8788/health`
+  - `curl http://127.0.0.1:8788/auth/me` with demo admin dev header
+  - Browser validation on `http://192.168.1.2:3000/app`
+  - Browser validation on `http://192.168.1.2:3000/admin`
+  - Browser validation on `http://192.168.1.2:3000/resident`
+  - Browser validation on `http://192.168.1.2:3000/guard`
+- Blockers:
+  - Dedicated resident and guard Supabase accounts are not yet seeded/tested in this transcript; current local validation used the demo admin/dev fallback user plus role-preview shells.
+- Pending items:
+  - Run a dedicated resident-user and guard-user sign-in flow against Supabase Auth for full role-specific live validation.
+  - Seed richer demo data in Supabase if broader UI walkthrough coverage is needed.
+
+## 2026-07-14 12:30:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Stop relying on shells/placeholders, seed everything needed for end-to-end use, and make the resident and guard apps actually usable without manual setup.
+- Assistant action summary: Added a real demo bootstrap script for Supabase auth + application data, seeded a full demo tenant with flats/residents/guard/notices/visitors/tickets/vehicles/parking/bills/house-help data, fixed Supabase bearer-token verification for ES256/JWKS-based projects, restored the missing `/apartments/mine` API route, fixed `bill_config.line_items` JSONB handling for Supabase Postgres, corrected mobile-web CORS for the LAN URL, launched the mobile web app, and validated resident and guard sign-in plus role-specific screens with real Supabase accounts.
+- Sub-task being handled: End-to-end demo usability and real-auth validation.
+- Files inspected:
+  - `apps/mobile/app/index.tsx`
+  - `apps/mobile/app/notices.tsx`
+  - `apps/mobile/app/tickets.tsx`
+  - `apps/mobile/app/my-vehicles.tsx`
+  - `apps/mobile/app/my-house-help.tsx`
+  - `apps/mobile/app/gate.tsx`
+  - `apps/mobile/app/duty.tsx`
+  - `apps/mobile/app/house-help.tsx`
+  - `apps/mobile/lib/auth-session.tsx`
+  - `apps/api-fastapi/app/core/auth.py`
+  - `apps/api-fastapi/app/api/routes/apartments.py`
+  - `apps/api-fastapi/app/api/routes/bill_config.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `scripts/050_seed_demo_supabase.py`
+- Files modified:
+  - `apps/api-fastapi/app/core/auth.py`
+  - `apps/api-fastapi/app/api/routes/apartments.py`
+  - `apps/api-fastapi/app/api/routes/bill_config.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/tests/test_app_contracts.py`
+  - `apps/api-fastapi/.env`
+  - `scripts/050_seed_demo_supabase.py`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Use the Expo app as the real resident/guard product surface for local validation because it already contains the richer role-specific flows, while the admin dashboard remains on the web app.
+- Validation performed:
+  - `cd apps/api-fastapi && . .venv/bin/activate && pytest -q tests/test_app_contracts.py`
+  - `apps/api-fastapi/.venv/bin/python scripts/050_seed_demo_supabase.py`
+  - Verified resident bearer-token auth against `GET /auth/me`
+  - Verified guard bearer-token auth against `GET /auth/me`
+  - Browser validation on mobile web `http://192.168.1.2:8081` for resident:
+    - `/`
+    - `/notices`
+    - `/tickets`
+    - `/my-vehicles`
+    - `/bills`
+  - Browser validation on mobile web `http://192.168.1.2:8081` for guard:
+    - `/`
+    - `/gate`
+    - `/duty`
+    - `/house-help`
+  - Browser validation on admin web `http://192.168.1.2:3000` for:
+    - `/admin/residents`
+    - `/admin/guards`
+    - `/admin/visitors`
+    - `/admin/billing`
+- Blockers:
+  - None for the current demo environment.
+- Pending items:
+  - UI polish can still go further, but the seeded admin/resident/guard flows are now usable locally without manual setup.
+
+## 2026-07-14 12:50:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The current UI looked bad, the product should be named `SarvaSociety`, the mobile experience should feel like an app, the user wants local URLs to test personally, and wants installability/PWA direction without Clerk.
+- Assistant action summary: Inspected the mobile app entry, shared components, and key resident/guard screens; added a shared mobile UI system; rebranded active user-facing surfaces to `SarvaSociety`; refreshed the resident and guard app entry plus the main visitor, pre-approval, notices, tickets, vehicles, gate, duty, and house-help screens; updated web landing/sign-in branding; restarted the FastAPI, admin web, and Expo web runtimes; and re-verified local responses.
+- Sub-task being handled: Mobile-first UI refinement and local runtime restart on the existing FastAPI + Supabase stack.
+- Files inspected:
+  - `apps/mobile/app/index.tsx`
+  - `apps/mobile/app/_layout.tsx`
+  - `apps/mobile/app/sign-in.tsx`
+  - `apps/mobile/app/notices.tsx`
+  - `apps/mobile/app/tickets.tsx`
+  - `apps/mobile/app/my-vehicles.tsx`
+  - `apps/mobile/app/visitors.tsx`
+  - `apps/mobile/app/pre-approve.tsx`
+  - `apps/mobile/app/gate.tsx`
+  - `apps/mobile/app/duty.tsx`
+  - `apps/mobile/app/house-help.tsx`
+  - `apps/mobile/app/bills.tsx`
+  - `apps/mobile/components/Button.tsx`
+  - `apps/mobile/components/auth-status.tsx`
+  - `apps/mobile/package.json`
+  - `apps/mobile/app.json`
+  - `apps/web/src/routes/index.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/web/src/routes/__root.tsx`
+- Files modified:
+  - `apps/mobile/app/_layout.tsx`
+  - `apps/mobile/app/index.tsx`
+  - `apps/mobile/app/sign-in.tsx`
+  - `apps/mobile/app/notices.tsx`
+  - `apps/mobile/app/tickets.tsx`
+  - `apps/mobile/app/my-vehicles.tsx`
+  - `apps/mobile/app/visitors.tsx`
+  - `apps/mobile/app/pre-approve.tsx`
+  - `apps/mobile/app/gate.tsx`
+  - `apps/mobile/app/duty.tsx`
+  - `apps/mobile/app/house-help.tsx`
+  - `apps/mobile/app.json`
+  - `apps/mobile/components/Button.tsx`
+  - `apps/mobile/components/auth-status.tsx`
+  - `apps/mobile/components/mobile-ui.tsx`
+  - `apps/web/src/routes/__root.tsx`
+  - `apps/web/src/routes/index.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the admin experience on the web dashboard, while making the resident and guard product feel like a dedicated mobile app through the Expo web surface instead of trying to merge everything into one mixed UI.
+- Validation performed:
+  - `cd apps/mobile && pnpm run check-types`
+  - `cd apps/web && pnpm run check-types`
+  - `cd apps/api-fastapi && . .venv/bin/activate && pytest tests/test_app_contracts.py`
+  - Restarted FastAPI with project venv on `http://0.0.0.0:8788`
+  - Restarted web dev server on `http://192.168.1.2:3000`
+  - Restarted Expo web app on `http://localhost:8081` and LAN `exp://192.168.1.2:8081`
+  - `curl http://127.0.0.1:8788/health` -> `{"status":"ok"}`
+  - `curl -I http://127.0.0.1:3000` -> `200`
+  - `curl -I http://127.0.0.1:8081` -> `200`
+- Blockers:
+  - A true reliable install prompt on a phone is still constrained by browser/HTTPS requirements in local LAN development even though the branding and web manifest metadata are now in place.
+- Pending items:
+  - User walkthrough feedback on the refreshed mobile UI.
+  - Additional polish on screens not yet fully restyled, if required after review.
+
+## 2026-07-14 13:00:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Do not leave the UI half-cooked; finish the full card-based responsive UI, avoid weird full-stretch layouts, and use a MyGate-style organizational reference for separating mobile and web experiences.
+- Assistant action summary: Continued the UI pass across the remaining unfinished surfaces, finishing resident billing, house-help assignment, and guard walk-in registration screens on mobile; reworked the web sign-in into a centered card layout with demo accounts; and rebuilt the admin shell into a structured carded dashboard frame with a dedicated nav rail and responsive top controls.
+- Sub-task being handled: Completing the second-phase full UI refinement across the remaining resident/guard/admin entry surfaces.
+- Files inspected:
+  - `apps/mobile/app/bills.tsx`
+  - `apps/mobile/app/my-house-help.tsx`
+  - `apps/mobile/app/register.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/routes/admin.tsx`
+  - `apps/web/src/components/auth-controls.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+- Files modified:
+  - `apps/mobile/app/bills.tsx`
+  - `apps/mobile/app/my-house-help.tsx`
+  - `apps/mobile/app/register.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/routes/admin.tsx`
+  - `apps/web/src/components/auth-controls.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the resident and guard experiences card-first and mobile-oriented, while giving the admin experience a denser but still constrained dashboard layout instead of trying to make all roles share the same visual frame.
+- Validation performed:
+  - `cd apps/mobile && pnpm run check-types`
+  - `cd apps/web && pnpm run check-types`
+  - `cd apps/api-fastapi && . .venv/bin/activate && pytest tests/test_app_contracts.py -q`
+  - `curl http://127.0.0.1:8788/health` -> `{"status":"ok"}`
+  - `curl -I http://127.0.0.1:3000` -> `200`
+  - `curl -I http://127.0.0.1:8081` -> `200`
+- Blockers:
+  - None for local testing at the moment.
+- Pending items:
+  - Final user review of the refreshed layouts on actual mobile and desktop screens.
+
+## 2026-07-14 13:15:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Resident notices should be visible on the resident dashboard, notices should open into readable details, payment processing should exist in the resident experience, guards should be able to trigger resident approval notifications when guests arrive, Firebase notifications should be configurable with admin test firing, and the purpose of the admin web should be clarified and fixed because it was getting stuck at loading.
+- Assistant action summary: Fixed the admin web auth gate so it behaves as the society operations console; added backend notification models, routes, and Firebase Admin hooks; triggered resident notification creation from visitor registration and notice publishing; enabled resident-side payment recording through the existing payments contract; updated the resident dashboard to surface notices and alerts directly with detail viewing; and added an admin test-notification tool in the admin overview.
+- Sub-task being handled: Closing the missing resident dashboard, payment, and notification functionality gaps.
+- Files inspected:
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/lib/supabase.ts`
+  - `apps/web/src/routes/admin.tsx`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/lib/api.ts`
+  - `apps/mobile/api/client.ts`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/api/routes/payments.py`
+  - `apps/api-fastapi/app/api/routes/notices.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/finance.py`
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/pyproject.toml`
+  - `apps/web/src/routes/admin/index.tsx`
+- Files modified:
+  - `apps/api-fastapi/pyproject.toml`
+  - `apps/api-fastapi/app/core/config.py`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/notifications.py`
+  - `apps/api-fastapi/app/api/router.py`
+  - `apps/api-fastapi/app/api/routes/notifications.py`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/api/routes/notices.py`
+  - `apps/api-fastapi/app/api/routes/payments.py`
+  - `apps/web/src/lib/api.ts`
+  - `apps/mobile/api/client.ts`
+  - `apps/web/src/routes/admin.tsx`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/admin/index.tsx`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Use in-app notifications as the durable core behavior, with Firebase push as an optional delivery channel layered on top, so the workflow works locally and in development even before production mobile push credentials are wired.
+- Validation performed:
+  - `cd apps/web && pnpm run check-types`
+  - `cd apps/api-fastapi && . .venv/bin/activate && python -m pip install -e '.[dev]'`
+  - `cd apps/api-fastapi && . .venv/bin/activate && pytest tests/test_app_contracts.py -q`
+  - `curl -I http://127.0.0.1:3000` -> `200`
+  - `curl -I http://127.0.0.1:8081` -> `200`
+  - `curl http://127.0.0.1:8788/health` -> `{"status":"ok"}`
+- Blockers:
+  - Real push delivery still depends on Firebase project credentials and real device token registration from mobile devices.
+- Pending items:
+  - Add native-device token capture when Firebase mobile app configuration is available.
+  - Final walkthrough of the new resident dashboard, admin notification test flow, and resident payment flow in the browser.
+
+## 2026-07-14 14:35:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The web apps were not showing usable UIs during local testing, and the user needed working URLs for both browser and phone testing.
+- Assistant action summary: Reproduced the route behavior in a live browser session, confirmed origin-sensitive API failures, updated the web and mobile API clients to resolve local API hosts more safely, broadened FastAPI local-dev CORS matching for `localhost`, `127.0.0.1`, and LAN IP testing, replaced the generic web landing splash with a clearer SarvaSociety app launcher, restarted the FastAPI server, and revalidated the app surfaces through both localhost and LAN URLs.
+- Sub-task being handled: Local UI/runtime stabilization for browser and phone testing.
+- Files inspected:
+  - `apps/web/src/routes/admin.tsx`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/web/src/routes/__root.tsx`
+  - `apps/web/src/lib/supabase.ts`
+  - `apps/mobile/lib/supabase.ts`
+  - `apps/mobile/lib/auth-session.tsx`
+  - `apps/mobile/app/index.tsx`
+  - `apps/web/src/lib/api.ts`
+  - `apps/mobile/api/client.ts`
+  - `apps/api-fastapi/app/core/config.py`
+  - `apps/api-fastapi/app/main.py`
+- Files modified:
+  - `apps/web/src/lib/api.ts`
+  - `apps/mobile/api/client.ts`
+  - `apps/web/src/routes/index.tsx`
+  - `apps/api-fastapi/app/core/config.py`
+  - `apps/api-fastapi/app/main.py`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Make local routing resilient in code instead of relying on one specific hostname, because the user needs to test from both the laptop browser and a phone on the same Wi-Fi against the same running stack.
+- Validation performed:
+  - `pnpm --dir apps/web run check-types`
+  - `pnpm --dir apps/mobile run check-types`
+  - Browser validation of `http://127.0.0.1:3000/admin`
+  - Browser validation of `http://127.0.0.1:8081/`
+  - Browser validation of `http://192.168.1.2:3000/admin`
+  - Browser validation of `http://192.168.1.2:8081/`
+  - CORS validation with `Origin: http://127.0.0.1:3000`
+  - CORS validation with `Origin: http://192.168.1.2:3000`
+- Blockers:
+  - None for current local testing access.
+- Pending items:
+  - Continue refining resident, guard, and admin end-to-end flows now that the local surfaces are reachable.
+  - Add Firebase configuration and push-token testing once the user provides Firebase project credentials.
+
+## 2026-07-14 15:05:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Notices should stay scrollable instead of stretching the app, notice taps should open a closable popup rather than bouncing back into the notice board, resident house-help visibility was unclear, and the user needed the sign-in and `3000` surface explained more clearly.
+- Assistant action summary: Added resident-side web API helpers for resident apartments and apartment-filtered house help, updated the resident dashboard to keep notices/alerts/bills in bounded scrollable sections, added resident house-help visibility directly on the dashboard, changed the mobile notice board to open notices in an in-place modal popup, and rewrote the sign-in copy to explain that one Supabase login works for all roles and what the `3000` web surface is for.
+- Sub-task being handled: Resident UI containment, notice-detail UX, and app-surface clarity.
+- Files inspected:
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/mobile/app/notices.tsx`
+  - `apps/mobile/app/notice/[id].tsx`
+  - `apps/mobile/app/my-house-help.tsx`
+  - `apps/mobile/app/house-help.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/lib/api.ts`
+  - `apps/api-fastapi/app/api/routes/apartments.py`
+  - `apps/api-fastapi/app/api/routes/house_help.py`
+- Files modified:
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/mobile/app/notices.tsx`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep notice reading in-place with modal detail views because that matches the user’s mobile-app expectation better than pushing them through another route for a simple read action.
+- Validation performed:
+  - `pnpm --dir apps/web run check-types`
+  - `pnpm --dir apps/mobile run check-types`
+  - Browser validation of `http://127.0.0.1:3000/sign-in`
+  - Browser validation of the updated notice and resident surfaces after rebuild
+- Blockers:
+  - Resident route browser validation without an active signed-in browser session is limited to loading/auth-shell state unless the role is signed in during that browser run.
+- Pending items:
+  - Continue polishing the resident and guard mobile-card layout with seeded real-flow data.
+  - Add a more guided “test this next” walkthrough directly in the app if the user still finds role entry confusing.
+
+## 2026-07-14 16:20:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Resident mobile bottom-bar targets still did not work, resident profile editing was missing, the guard app should feel like the resident app instead of a separate shell, and walk-in plus guard-attendance flows needed real searchable/photo-backed behavior.
+- Assistant action summary: Extended the shared visitor and guard-duty contracts with additive fields for `partnerName`, `apartmentLabel`, `checkpoint`, and `clockInPhotoUrl`; added a resident self-profile update route on `PATCH /auth/me`; overhauled the mobile resident app to add real `community`, `homes`, `services`, and `profile` screens plus a reusable resident bottom navigation; redesigned the guard home into the same card-first visual language; rebuilt walk-in registration with apartment search, partner capture, required-purpose UI, and camera photo upload; rebuilt guard attendance so guards select a checkpoint and capture a photo before clock-in; added Supabase SQL `scripts/036_mobile_guard_and_visitor_fields.sql`; applied that SQL to the active Supabase database; hardened notification helpers so missing optional notification tables do not break visitor approval flows; restarted FastAPI; and revalidated live API plus local frontend reachability.
+- Sub-task being handled: Resident/guard mobile-product completion and Supabase-backed flow hardening.
+- Files inspected:
+  - `apps/mobile/app/index.tsx`
+  - `apps/mobile/app/register.tsx`
+  - `apps/mobile/app/gate.tsx`
+  - `apps/mobile/app/duty.tsx`
+  - `apps/mobile/app/visitors.tsx`
+  - `apps/mobile/app/_layout.tsx`
+  - `apps/mobile/api/client.ts`
+  - `apps/mobile/components/mobile-ui.tsx`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/api/routes/guards.py`
+  - `apps/api-fastapi/app/api/routes/auth.py`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/visitors.py`
+  - `apps/api-fastapi/app/schemas/guard_duty.py`
+  - `packages/shared/src/visitor.ts`
+  - `packages/shared/src/guard-duty.ts`
+  - `scripts/998_bootstrap_supabase_schema.sql`
+  - `scripts/999_all_in_one_supabase_migration.sql`
+- Files modified:
+  - `packages/shared/src/visitor.ts`
+  - `packages/shared/src/guard-duty.ts`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/visitors.py`
+  - `apps/api-fastapi/app/schemas/guard_duty.py`
+  - `apps/api-fastapi/app/api/routes/visitors.py`
+  - `apps/api-fastapi/app/api/routes/guards.py`
+  - `apps/api-fastapi/app/api/routes/auth.py`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `apps/mobile/api/client.ts`
+  - `apps/mobile/app/_layout.tsx`
+  - `apps/mobile/app/index.tsx`
+  - `apps/mobile/app/register.tsx`
+  - `apps/mobile/app/duty.tsx`
+  - `apps/mobile/app/gate.tsx`
+  - `apps/mobile/app/visitors.tsx`
+  - `apps/mobile/app/community.tsx`
+  - `apps/mobile/app/homes.tsx`
+  - `apps/mobile/app/services.tsx`
+  - `apps/mobile/app/profile.tsx`
+  - `apps/mobile/components/app-shell.tsx`
+  - `scripts/036_mobile_guard_and_visitor_fields.sql`
+  - `scripts/998_bootstrap_supabase_schema.sql`
+  - `scripts/999_all_in_one_supabase_migration.sql`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep all new backend fields additive and preserve existing request compatibility, while enforcing stronger requirements like visitor purpose and attendance photo in the mobile UI layer so the original contract remains unbroken.
+- Validation performed:
+  - `pnpm --dir packages/shared build`
+  - `pnpm --dir apps/mobile check-types`
+  - `cd apps/api-fastapi && .venv/bin/pytest -q tests/test_app_contracts.py`
+  - Applied `scripts/036_mobile_guard_and_visitor_fields.sql` to the active Supabase database
+  - Restarted `uvicorn app.main:app --host 0.0.0.0 --port 8788`
+  - `curl -s http://127.0.0.1:8788/auth/me -H 'x-user-id: 33333333-3333-3333-3333-333333333333'`
+  - `curl -s http://127.0.0.1:8788/guards/duty/active -H 'x-user-id: 44444444-4444-4444-4444-444444444444'`
+  - `curl -s -X POST http://127.0.0.1:8788/visitors ... partnerName=Amazon`
+  - `curl -s http://127.0.0.1:8788/visitors -H 'x-user-id: 33333333-3333-3333-3333-333333333333'`
+  - `curl -I http://127.0.0.1:3000`
+  - `curl -I http://127.0.0.1:8081`
+- Blockers:
+  - Native camera capture still depends on browser/device camera permission behavior during manual testing.
+  - Push notifications still need Firebase project credentials plus notification tables if you want in-app persistence and real push delivery end-to-end.
+- Pending items:
+  - Manual visual walkthrough of the refreshed resident, guard, and admin surfaces on your phone and laptop.
+  - Final admin-side flow polish for creating and managing guards, apartments, and residents through the web console.
+
+## 2026-07-14 16:35:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The mobile app identifiers needed to be finalized before Firebase app registration, using `com.sarvasoft.sarvasociety` consistently for Android and iOS.
+- Assistant action summary: Inspected the Expo mobile app config, confirmed the identifiers were not yet set, then updated the Expo `ios.bundleIdentifier` and `android.package` values to `com.sarvasoft.sarvasociety`.
+- Sub-task being handled: Mobile platform identifier finalization for Firebase/app-store registration readiness.
+- Files inspected:
+  - `apps/mobile/app.json`
+- Files modified:
+  - `apps/mobile/app.json`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Use the same reverse-domain identifier on both platforms so Firebase, Android, and iOS registrations stay aligned.
+- Validation performed:
+  - Configuration-level verification by reading the updated Expo config
+- Blockers:
+  - None for identifier configuration.
+- Pending items:
+  - Register the matching Android and Apple apps in Firebase using `com.sarvasoft.sarvasociety`.
+
+## 2026-07-14 16:55:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The provided Firebase app configs needed to be placed in the correct mobile project locations, the web/PWA notification path needed to be enabled, notification storage tables needed to exist in Supabase, and an HTTPS route was needed for phone-side testing.
+- Assistant action summary: Copied `google-services.json` and `GoogleService-Info.plist` into `apps/mobile/`, updated `apps/mobile/app.json` to reference them for Android/iOS, added Firebase web config and VAPID values to local web/mobile env files plus env examples, created `scripts/037_notifications_and_device_tokens.sql`, folded that SQL into the bootstrap/all-in-one scripts, applied it to the active Supabase database, implemented Firebase web-push support in the web app with a service worker, push registration helper, manifest/head PWA metadata, and resident/guard/admin notification-enable cards, restarted the web app, verified notification token registration and in-app notification creation against Supabase, and started an ngrok HTTPS tunnel for phone testing.
+- Sub-task being handled: Firebase client placement, web/PWA push enablement, notification-table creation, and HTTPS device test path.
+- Files inspected:
+  - `apps/mobile/app.json`
+  - `apps/web/package.json`
+  - `apps/web/public/manifest.json`
+  - `apps/web/src/lib/supabase.ts`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/routes/__root.tsx`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/routes/admin/index.tsx`
+  - `apps/api-fastapi/app/api/routes/notifications.py`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `apps/api-fastapi/app/core/config.py`
+  - `apps/api-fastapi/app/db/models.py`
+  - `apps/api-fastapi/app/schemas/notifications.py`
+  - `apps/web/.env`
+  - `apps/mobile/.env`
+- Files modified:
+  - `apps/mobile/app.json`
+  - `apps/mobile/google-services.json`
+  - `apps/mobile/GoogleService-Info.plist`
+  - `apps/web/package.json`
+  - `apps/web/.env`
+  - `apps/web/.env.example`
+  - `apps/mobile/.env`
+  - `apps/mobile/.env.example`
+  - `apps/api-fastapi/.env`
+  - `apps/api-fastapi/.env.example`
+  - `apps/web/public/manifest.json`
+  - `apps/web/public/firebase-messaging-sw.js`
+  - `apps/web/src/lib/firebase-web.ts`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/components/push-notification-card.tsx`
+  - `apps/web/src/routes/__root.tsx`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/routes/admin/index.tsx`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `scripts/037_notifications_and_device_tokens.sql`
+  - `scripts/998_bootstrap_supabase_schema.sql`
+  - `scripts/999_all_in_one_supabase_migration.sql`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Use the Vite web app on `3000` as the installable PWA/push-test surface, because it can reliably host the manifest and Firebase service worker over an HTTPS tunnel, while the Expo dev server on `8081` is not the right production-like PWA push surface for phone testing.
+- Validation performed:
+  - Copied native Firebase config files into `apps/mobile/`
+  - Applied `scripts/037_notifications_and_device_tokens.sql` to Supabase
+  - `cd apps/api-fastapi && .venv/bin/pytest -q tests/test_app_contracts.py` -> 32 passed
+  - `cd apps/web && node node_modules/typescript/bin/tsc --noEmit`
+  - `cd apps/web && node node_modules/vite/bin/vite.js build`
+  - `curl -I http://127.0.0.1:3000/manifest.json`
+  - `curl -I http://127.0.0.1:3000/firebase-messaging-sw.js?...`
+  - `curl -X POST http://127.0.0.1:8788/notifications/register-device ...` -> `{"ok":true}`
+  - `curl -X POST http://127.0.0.1:8788/notifications/test ...` -> notification row created in Supabase
+  - Started ngrok tunnel to `http://localhost:3000`
+- Blockers:
+  - Real FCM delivery still needs the Firebase Admin SDK service-account private-key JSON; the provided Android/iOS/web client config files are not sufficient for backend send authorization.
+  - ngrok free-tier HTTPS may show an initial browser interstitial before the PWA can be installed.
+- Pending items:
+  - Add the Firebase Admin SDK service-account JSON at `apps/api-fastapi/firebase-service-account.json` or another configured path.
+  - Run a real phone-side install/permission/token-registration test from the ngrok HTTPS URL.
+
+## 2026-07-14 17:10:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: Public URLs and endpoints must come from environment configuration rather than being hardcoded anywhere in the code.
+- Assistant action summary: Removed the remaining hardcoded ngrok/admin-web URLs from the code by making Vite allowed hosts env-driven through `VITE_ALLOWED_HOSTS` and making the mobile admin-console launch URL env-driven through `EXPO_PUBLIC_ADMIN_WEB_URL`, then restarted the web app and revalidated TypeScript.
+- Sub-task being handled: Environment-driven public URL cleanup.
+- Files inspected:
+  - `apps/web/vite.config.ts`
+  - `apps/mobile/app/index.tsx`
+  - `apps/web/.env`
+  - `apps/web/.env.example`
+  - `apps/mobile/.env`
+  - `apps/mobile/.env.example`
+- Files modified:
+  - `apps/web/vite.config.ts`
+  - `apps/mobile/app/index.tsx`
+  - `apps/web/.env`
+  - `apps/web/.env.example`
+  - `apps/mobile/.env`
+  - `apps/mobile/.env.example`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep even dev/public-host allowances env-driven so HTTPS tunnel changes do not require code edits.
+- Validation performed:
+  - `rg` verification that the remaining hardcoded ngrok/admin URLs were removed from app code
+  - `cd apps/web && node node_modules/typescript/bin/tsc --noEmit`
+  - Restarted Vite dev server on port `3000`
+- Blockers:
+  - None for configuration cleanup itself.
+- Pending items:
+  - Re-test Android PWA notification permission and real token registration through the HTTPS ngrok URL.
+
+## 2026-07-14 17:15:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The Android PWA sign-in screen was not rendering text/button labels correctly, and after sign-in the app showed `Could not load profile` / `failed to fetch`.
+- Assistant action summary: Inspected the web sign-in route, global styles, API base resolver, and live dev processes; confirmed the web app was still calling the backend over `http://192.168.1.2:8788` while being loaded from the HTTPS ngrok URL; replaced the web API base with env-driven same-origin `/api` plus a Vite proxy target, tightened Android-safe sign-in input/button styling and explicit light color-scheme handling, restarted Vite, and revalidated both `/api/health` and `/api/auth/me` successfully through the current ngrok URL using a real Supabase resident bearer token.
+- Sub-task being handled: Android HTTPS/PWA fetch failure fix and sign-in rendering hardening.
+- Files inspected:
+  - `apps/web/.env`
+  - `apps/web/.env.example`
+  - `apps/web/vite.config.ts`
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/web/src/styles.css`
+  - `apps/api-fastapi/app/core/tenant.py`
+  - `apps/api-fastapi/app/api/deps.py`
+- Files modified:
+  - `apps/web/.env`
+  - `apps/web/.env.example`
+  - `apps/web/vite.config.ts`
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/web/src/styles.css`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Use one HTTPS origin for local phone testing by proxying `/api` through the Vite web server instead of trying to maintain a second ngrok HTTPS backend tunnel on the free ngrok plan.
+- Validation performed:
+  - `cd apps/web && node node_modules/typescript/bin/tsc --noEmit`
+  - Restarted Vite dev server on port `3000`
+  - `curl http://127.0.0.1:3000/api/health` -> `{"status":"ok"}`
+  - `curl https://convolvulaceous-kati-coagulatory.ngrok-free.dev/api/health` -> `{"status":"ok"}`
+  - Supabase password sign-in for `resident@demo.local`
+  - `curl https://convolvulaceous-kati-coagulatory.ngrok-free.dev/api/auth/me -H "authorization: Bearer ..."` -> resident profile returned successfully
+- Blockers:
+  - Browser/PWA may still hold cached older assets until the Android device refreshes the ngrok site.
+- Pending items:
+  - Re-open the Android ngrok PWA, hard refresh it if needed, and confirm sign-in text rendering plus resident profile load from the updated bundle.
+
+## 2026-07-14 17:32:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The product must use one HTTPS URL only, with admin/guard/resident all behind that single entry point, and the resident/guard experiences on that URL must be the real MyGate-style app rather than a shell or separate Expo/local surface.
+- Assistant action summary: Inspected the deployable web routes and the existing mobile-inspired Expo layouts, then moved the single-entry deployment approach into `apps/web`: added a modal push-permission prompt component, updated the web sign-in copy to reflect one URL for all roles, changed `/app` to redirect directly into the correct role route after login, rebuilt `/resident` into a phone-style resident experience with bottom-tab sections, notice popup viewing, daily-help visibility, resident payments, and profile editing, rebuilt `/guard` into a phone-style guard experience on the same domain, revalidated TypeScript, and moved the ngrok tunnel back to the web app on port `3000`.
+- Sub-task being handled: Single-URL role-based deployable web app refinement for resident and guard.
+- Files inspected:
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `apps/mobile/app/index.tsx`
+  - `apps/mobile/components/app-shell.tsx`
+  - `apps/web/src/components/push-notification-card.tsx`
+  - `apps/web/src/components/ui/select.tsx`
+- Files modified:
+  - `apps/web/src/lib/api.ts`
+  - `apps/web/src/components/push-permission-modal.tsx`
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/routes/sign-in.tsx`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: The production-style path for Netlify/ngrok must be the single `apps/web` surface, with resident/guard adopting the mobile visual system there instead of relying on the separate Expo web surface.
+- Validation performed:
+  - `cd apps/web && node node_modules/typescript/bin/tsc --noEmit`
+  - `curl http://127.0.0.1:3000/api/health` -> `{"status":"ok"}`
+  - restarted ngrok tunnel back to port `3000`
+- Blockers:
+  - A visual pass on the newly rebuilt resident/guard web routes is still needed on the phone to tune spacing and behavior further.
+- Pending items:
+  - Re-test the single HTTPS ngrok URL as resident, guard, and admin only through the deployable web app surface.
+
+## 2026-07-14 17:55:00 IST
+
+- Task ID: `TASK-001`
+- User request summary: The resident PWA still looked like a stretched website rather than a compact mobile app, repeated notification registration messaging and wake-up loading states felt broken, admin notification targeting needed search plus broadcast-to-all-residents support, and the README needed to describe the actual migrated system before code push/PR.
+- Assistant action summary: Reworked the resident web route into a tighter phone-sized layout with a compact top bar, 2x2 quick-action grid, daily-help-above-notices ordering, smaller cards/notice typography, payments moved under services, and a fixed bottom dock that no longer collides with content; preserved the role-based single-URL flow; persisted push-enabled state so wake-up does not keep visually re-registering notifications; updated app-opening loading shells to match the product styling; deactivated failed Firebase tokens after multicast send failures and removed duplicate foreground/system notification creation; extended admin test notifications to support either a searched single resident or all-residents broadcast with clearer counts in the response; rewrote the README to reflect the FastAPI + Supabase + single-URL architecture; and reran backend/web validation.
+- Sub-task being handled: Resident mobile-web UI refinement, notification behavior hardening, admin notification targeting expansion, and README update.
+- Files inspected:
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/web/src/components/push-permission-modal.tsx`
+  - `apps/web/src/components/push-notification-card.tsx`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `apps/api-fastapi/app/api/routes/notifications.py`
+  - `apps/api-fastapi/app/schemas/notifications.py`
+  - `apps/web/src/routes/admin/index.tsx`
+  - `apps/web/src/lib/api.ts`
+  - `README.md`
+- Files modified:
+  - `apps/web/src/routes/resident.tsx`
+  - `apps/web/src/routes/guard.tsx`
+  - `apps/web/src/routes/app.tsx`
+  - `apps/web/src/lib/auth-session.tsx`
+  - `apps/api-fastapi/app/core/notifications.py`
+  - `apps/api-fastapi/app/api/routes/notifications.py`
+  - `apps/api-fastapi/app/schemas/notifications.py`
+  - `apps/web/src/routes/admin/index.tsx`
+  - `apps/web/src/lib/api.ts`
+  - `README.md`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-001-backend-port-multitenant-migration.md`
+- Decision made: Keep the deployable `apps/web` app as the single product entry point, but tighten its resident route until it behaves like a compact mobile app instead of relying on a separate Expo web surface.
+- Validation performed:
+  - `cd apps/web && node node_modules/typescript/bin/tsc --noEmit`
+  - `cd apps/api-fastapi && .venv/bin/pytest -q tests/test_app_contracts.py` -> 32 passed
+  - `curl http://127.0.0.1:8788/health` -> `{"status":"ok"}`
+  - restarted FastAPI after notification backend changes
+- Blockers:
+  - Final phone-side visual confirmation is still needed after the latest resident layout tightening because the user’s Android-installed PWA may still cache older assets.
+- Pending items:
+  - Push the branch and prepare the PR once the latest repo state is committed.
