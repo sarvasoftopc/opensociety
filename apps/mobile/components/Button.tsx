@@ -24,11 +24,11 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  btn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  btn: { paddingHorizontal: 18, paddingVertical: 14, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   btnDisabled: { opacity: 0.5 },
-  primary: { backgroundColor: '#0e7490' },
-  danger: { backgroundColor: '#e11d48' },
-  outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#d4d4d8' },
-  btnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  btnTextOutline: { color: '#3f3f46' },
+  primary: { backgroundColor: '#11203a' },
+  danger: { backgroundColor: '#d92d20' },
+  outline: { backgroundColor: '#f8fbff', borderWidth: 1, borderColor: '#d7e2f1' },
+  btnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  btnTextOutline: { color: '#35507a' },
 })

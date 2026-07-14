@@ -5,6 +5,7 @@ import type { Apartment, CreateVehicle, VehicleType } from '@opensociety/shared'
 import { vehicleTypeSchema } from '@opensociety/shared'
 import { apiClient } from '../api/client'
 import { Button } from '../components/Button'
+import { HeroCard, MobileScreen, SectionCard, mobileTheme } from '../components/mobile-ui'
 
 // Resident view: register and manage the vehicles for their own flat(s).
 export default function MyVehicles() {
@@ -43,30 +44,42 @@ export default function MyVehicles() {
 
   if (apts.isLoading || vehicles.isLoading)
     return (
-      <Centered>
-        <ActivityIndicator />
-      </Centered>
+      <MobileScreen>
+        <Centered>
+          <ActivityIndicator />
+        </Centered>
+      </MobileScreen>
     )
   if (apts.isError)
     return (
-      <Centered>
-        <Text style={styles.error}>API unreachable</Text>
-        <Text style={styles.dim}>{String((apts.error as Error)?.message ?? 'error')}</Text>
-      </Centered>
+      <MobileScreen>
+        <SectionCard title="Vehicle directory unavailable">
+          <Text style={styles.error}>API unreachable</Text>
+          <Text style={styles.dim}>{String((apts.error as Error)?.message ?? 'error')}</Text>
+        </SectionCard>
+      </MobileScreen>
     )
   if (myApts.length === 0)
     return (
-      <Centered>
-        <Text style={styles.dim}>You have no flats assigned yet.</Text>
-      </Centered>
+      <MobileScreen>
+        <SectionCard title="No flat assigned">
+          <Text style={styles.dim}>You have no flats assigned yet.</Text>
+        </SectionCard>
+      </MobileScreen>
     )
 
   const canAdd = flat != null && registrationNumber.trim().length > 0 && !add.isPending
 
   return (
-    <ScrollView contentContainerStyle={styles.list}>
-      <View style={styles.section}>
-        <Text style={styles.heading}>Register a vehicle</Text>
+    <MobileScreen scroll contentStyle={styles.list}>
+      <HeroCard
+        eyebrow="Resident"
+        title="Vehicle management"
+        subtitle="Keep resident vehicles current so gate staff and parking records stay accurate."
+        badge={`${(vehicles.data ?? []).length} registered`}
+      />
+
+      <SectionCard title="Register a vehicle">
         {myApts.length > 1 && (
           <Chips
             options={myApts.map((a: Apartment) => ({ value: a.id, label: `${a.tower}-${a.apartmentNo}` }))}
@@ -75,8 +88,9 @@ export default function MyVehicles() {
           />
         )}
         <TextInput
-          style={styles.input}
+          style={mobileTheme.input}
           placeholder="Reg. number (KA 01 AB 1234)"
+          placeholderTextColor="#7a8aa3"
           autoCapitalize="characters"
           autoCorrect={false}
           value={registrationNumber}
@@ -89,10 +103,9 @@ export default function MyVehicles() {
         />
         <Button label={add.isPending ? 'Adding…' : 'Add vehicle'} onPress={() => add.mutate()} disabled={!canAdd} />
         {add.isError && <Text style={styles.error}>{String((add.error as Error)?.message ?? 'Failed')}</Text>}
-      </View>
+      </SectionCard>
 
-      <View style={styles.section}>
-        <Text style={styles.heading}>My vehicles</Text>
+      <SectionCard title="My vehicles">
         {(vehicles.data ?? []).length === 0 && <Text style={styles.dim}>No vehicles registered yet.</Text>}
         {(vehicles.data ?? []).map((v) => (
           <View key={v.id} style={[styles.card, v.isActive ? null : styles.inactive]}>
@@ -110,8 +123,8 @@ export default function MyVehicles() {
             />
           </View>
         ))}
-      </View>
-    </ScrollView>
+      </SectionCard>
+    </MobileScreen>
   )
 }
 
@@ -129,8 +142,8 @@ function Chips({
       {options.map((o) => {
         const on = o.value === selected
         return (
-          <Pressable key={o.value} onPress={() => onSelect(o.value)} style={[styles.chip, on && styles.chipOn]}>
-            <Text style={[styles.chipText, on && styles.chipTextOn]}>{o.label}</Text>
+          <Pressable key={o.value} onPress={() => onSelect(o.value)} style={[mobileTheme.chip, on && mobileTheme.chipActive]}>
+            <Text style={[mobileTheme.chipText, on && mobileTheme.chipTextActive]}>{o.label}</Text>
           </Pressable>
         )
       })}
@@ -143,26 +156,12 @@ function Centered({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 20 },
+  list: { gap: 16, paddingBottom: 40 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  section: { gap: 10 },
-  heading: { fontSize: 16, fontWeight: '700' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d4d4d8',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
-  chipOn: { backgroundColor: '#0e7490', borderColor: '#0e7490' },
-  chipText: { color: '#3f3f46', fontSize: 13, fontWeight: '600' },
-  chipTextOn: { color: '#fff' },
-  card: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 10, backgroundColor: '#f4f4f5', gap: 10 },
+  card: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 22, backgroundColor: '#f8fbff', gap: 10, borderWidth: 1, borderColor: '#dce8f7' },
   inactive: { opacity: 0.55 },
-  plate: { fontSize: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  dim: { color: '#71717a', fontSize: 13 },
-  error: { color: '#e11d48', fontSize: 13 },
+  plate: { fontSize: 17, fontWeight: '800', fontVariant: ['tabular-nums'], color: '#11203a' },
+  dim: { color: '#697a94', fontSize: 13 },
+  error: { color: '#d92d20', fontSize: 13, fontWeight: '700' },
 })

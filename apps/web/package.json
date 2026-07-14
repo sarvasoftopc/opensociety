@@ -11,11 +11,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@clerk/tanstack-react-start": "^1.4.12",
     "@opensociety/shared": "workspace:*",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
+    "firebase": "^10.13.2",
+    "@supabase/supabase-js": "^2.56.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-query": "^5.66.0",

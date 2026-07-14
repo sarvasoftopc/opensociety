@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "781394529188",
+    "project_id": "sarvasociety-3b978",
+    "storage_bucket": "sarvasociety-3b978.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781394529188:android:8d776a776fccf9c07d4f31",
+        "android_client_info": {
+          "package_name": "com.sarvasoft.sarvasociety"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd8p9G2znVrELfx5N6IUAE0_d4sDdN9Qs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
