@@ -44,6 +44,7 @@ function SocietyForm({ initial }: { initial: UpdateSocietyConfig }) {
           <Label htmlFor={key}>{label}</Label>
           <Input
             id={key}
+            className="h-11 rounded-xl border-slate-200 bg-slate-50"
             placeholder={placeholder}
             value={form[key] ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
@@ -51,7 +52,7 @@ function SocietyForm({ initial }: { initial: UpdateSocietyConfig }) {
         </div>
       ))}
       <div className="flex items-center gap-3 pt-1">
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" className="rounded-xl" disabled={mutation.isPending}>
           {mutation.isPending ? 'Saving…' : 'Save changes'}
         </Button>
         {mutation.isSuccess && <span className="text-sm text-emerald-600 dark:text-emerald-400">Saved ✓</span>}
@@ -65,9 +66,9 @@ function SocietyPage() {
   const society = useQuery({ queryKey: ['society'], queryFn: apiClient.getSociety })
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Society" description="Configure the basic details for your society." />
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Society details</CardTitle>
         </CardHeader>

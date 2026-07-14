@@ -43,19 +43,19 @@ function Stepper({ current }: { current: number }) {
                   ? 'bg-primary text-primary-foreground'
                   : state === 'done'
                     ? 'bg-emerald-600 text-white'
-                    : 'bg-muted text-muted-foreground')
+                    : 'bg-slate-100 text-slate-400')
               }
             >
               {state === 'done' ? '✓' : i + 1}
             </span>
             <span
               className={
-                'text-sm font-medium ' + (state === 'todo' ? 'text-muted-foreground' : 'text-foreground')
+                'text-sm font-medium ' + (state === 'todo' ? 'text-slate-400' : 'text-foreground')
               }
             >
               {step.label}
             </span>
-            {i < SETUP_STEPS.length - 1 && <span className="bg-border mx-2 h-px flex-1" />}
+            {i < SETUP_STEPS.length - 1 && <span className="bg-slate-200 mx-2 h-px flex-1" />}
           </li>
         )
       })}
@@ -85,9 +85,9 @@ function SetupWizard() {
   })
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Society setup" description="Get your society ready in three quick steps." />
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardContent className="pt-6">
           <Stepper current={step} />
 
@@ -98,6 +98,7 @@ function SetupWizard() {
                   <Label htmlFor={key}>{label}</Label>
                   <Input
                     id={key}
+                    className="h-11 rounded-xl border-slate-200 bg-slate-50"
                     placeholder={placeholder}
                     value={society[key]}
                     onChange={(e) => setSociety((s) => ({ ...s, [key]: e.target.value }))}
@@ -116,12 +117,13 @@ function SetupWizard() {
                 <Textarea
                   id="csv"
                   rows={8}
+                  className="rounded-xl border-slate-200 bg-slate-50"
                   placeholder={'A,101,1,2BHK\nA,102,1,2BHK\nB,201,2,3BHK'}
                   value={csv}
                   onChange={(e) => setCsv(e.target.value)}
                 />
               </div>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-slate-500 text-sm">
                 {apartments.length} valid {apartments.length === 1 ? 'apartment' : 'apartments'} parsed. You can
                 also skip this and add apartments later.
               </p>
@@ -137,15 +139,15 @@ function SetupWizard() {
 
           {step === 2 && (
             <div className="max-w-xl space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold">Society</h3>
-                <p className="text-muted-foreground text-sm">
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                <h3 className="text-sm font-semibold text-slate-700 mb-1">Society</h3>
+                <p className="text-slate-500 text-sm">
                   {society.name} — {society.address}, {society.city}, {society.state} {society.pincode}
                 </p>
               </div>
-              <div>
-                <h3 className="text-sm font-semibold">Apartments</h3>
-                <p className="text-muted-foreground text-sm">
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                <h3 className="text-sm font-semibold text-slate-700 mb-1">Apartments</h3>
+                <p className="text-slate-500 text-sm">
                   {apartments.length} {apartments.length === 1 ? 'apartment' : 'apartments'} will be imported.
                 </p>
               </div>
@@ -158,18 +160,19 @@ function SetupWizard() {
           )}
 
           <div className="mt-8 flex items-center justify-between">
-            <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
+            <Button variant="outline" className="rounded-xl" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
               Back
             </Button>
             {step < SETUP_STEPS.length - 1 ? (
               <Button
+                className="rounded-xl"
                 onClick={() => setStep((s) => s + 1)}
                 disabled={(step === 0 && !societyValid) || (step === 1 && csvErrors.length > 0)}
               >
                 Next
               </Button>
             ) : (
-              <Button onClick={() => finish.mutate()} disabled={!societyValid || finish.isPending}>
+              <Button className="rounded-xl" onClick={() => finish.mutate()} disabled={!societyValid || finish.isPending}>
                 {finish.isPending ? 'Finishing…' : 'Finish setup'}
               </Button>
             )}

@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { BillConfig, GenerateBills, MaintenanceBill, PaymentMethod } from '@opensociety/shared'
 import { formatPaise, paymentMethodSchema, billStatusSchema } from '@opensociety/shared'
+import { FileText, X } from 'lucide-react'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,11 +16,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 export const Route = createFileRoute('/admin/billing')({ component: BillingPage })
 
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
-  PAID: 'default',
-  PARTIALLY_PAID: 'outline',
-  ISSUED: 'secondary',
-  CANCELLED: 'destructive',
+function statusPillClass(status: string): string {
+  if (status === 'PAID') return 'bg-emerald-50 text-emerald-700'
+  if (status === 'PARTIALLY_PAID') return 'bg-amber-50 text-amber-700'
+  if (status === 'ISSUED') return 'bg-blue-50 text-blue-700'
+  if (status === 'CANCELLED') return 'bg-rose-50 text-rose-700'
+  return 'bg-slate-100 text-slate-600'
 }
 
 const rupeesToPaise = (r: string) => Math.round((parseFloat(r) || 0) * 100)
@@ -65,34 +66,36 @@ function GenerateBillsForm() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="b-period">Period (YYYY-MM)</Label>
-          <Input id="b-period" className="w-36" placeholder="2026-07" value={period} onChange={(e) => setPeriod(e.target.value)} />
+          <Input id="b-period" className="w-36 h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="2026-07" value={period} onChange={(e) => setPeriod(e.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="b-title">Title</Label>
-          <Input id="b-title" className="w-64" placeholder="Maintenance — Jul 2026" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input id="b-title" className="w-64 h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="Maintenance — Jul 2026" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label>Line items</Label>
         {lines.map((l, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <Input className="w-56" placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
-            <Input className="w-32" placeholder="Amount ₹" inputMode="decimal" value={l.amount} onChange={(e) => setLine(i, { amount: e.target.value })} />
-            <Input className="w-24" placeholder="GST %" inputMode="numeric" value={l.taxRatePct} onChange={(e) => setLine(i, { taxRatePct: e.target.value })} />
-            {lines.length > 1 && (
-              <Button type="button" size="sm" variant="ghost" onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}>
-                ✕
+          <div key={i} className="grid grid-cols-[1fr_8rem_6rem_auto] items-center gap-2">
+            <Input className="h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
+            <Input className="h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="Amount ₹" inputMode="decimal" value={l.amount} onChange={(e) => setLine(i, { amount: e.target.value })} />
+            <Input className="h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="GST %" inputMode="numeric" value={l.taxRatePct} onChange={(e) => setLine(i, { taxRatePct: e.target.value })} />
+            {lines.length > 1 ? (
+              <Button type="button" size="sm" variant="ghost" onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))} className="rounded-lg px-2">
+                <X className="h-4 w-4 text-slate-400" />
               </Button>
+            ) : (
+              <div className="w-8" />
             )}
           </div>
         ))}
-        <Button type="button" size="sm" variant="outline" onClick={() => setLines((ls) => [...ls, { description: '', amount: '', taxRatePct: '0' }])}>
+        <Button type="button" size="sm" variant="outline" onClick={() => setLines((ls) => [...ls, { description: '', amount: '', taxRatePct: '0' }])} className="rounded-xl mt-1">
           + Add line
         </Button>
       </div>
 
-      <Button type="submit" disabled={mutation.isPending || !canSubmit}>
+      <Button type="submit" disabled={mutation.isPending || !canSubmit} className="rounded-xl">
         {mutation.isPending ? 'Generating…' : 'Generate bills for all flats'}
       </Button>
       {mutation.isSuccess && (
@@ -119,9 +122,9 @@ function RecordPayment({ bill }: { bill: MaintenanceBill }) {
   })
   return (
     <div className="flex items-center justify-end gap-2">
-      <Input className="h-8 w-24" placeholder="₹" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+      <Input className="h-9 w-24 rounded-xl border-slate-200 bg-slate-50 text-sm" placeholder="₹" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
       <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
-        <SelectTrigger className="h-8 w-28">
+        <SelectTrigger className="h-9 w-28 rounded-xl border-slate-200 bg-slate-50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -132,7 +135,7 @@ function RecordPayment({ bill }: { bill: MaintenanceBill }) {
           ))}
         </SelectContent>
       </Select>
-      <Button size="sm" disabled={pay.isPending || !amount} onClick={() => pay.mutate()}>
+      <Button size="sm" disabled={pay.isPending || !amount} onClick={() => pay.mutate()} className="rounded-xl h-9">
         {pay.isPending ? '…' : 'Record'}
       </Button>
     </div>
@@ -151,8 +154,9 @@ function InvoiceButton({ billId }: { billId: string }) {
     }
   }
   return (
-    <Button variant="ghost" size="sm" onClick={open} disabled={busy}>
-      {busy ? '…' : '📄 Invoice'}
+    <Button variant="ghost" size="sm" onClick={open} disabled={busy} className="rounded-lg gap-1.5 text-slate-500 hover:text-slate-700">
+      <FileText className="h-3.5 w-3.5" />
+      {busy ? '…' : 'Invoice'}
     </Button>
   )
 }
@@ -160,7 +164,7 @@ function InvoiceButton({ billId }: { billId: string }) {
 function DuesCard() {
   const dues = useQuery({ queryKey: ['dues'], queryFn: apiClient.listDues })
   return (
-    <Card>
+    <Card className="border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>Outstanding dues</CardTitle>
       </CardHeader>
@@ -168,20 +172,20 @@ function DuesCard() {
         <QueryState q={dues} empty={dues.isSuccess && dues.data?.length === 0} emptyText="No outstanding dues 🎉">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Flat</TableHead>
-                <TableHead className="text-right">Billed</TableHead>
-                <TableHead className="text-right">Paid</TableHead>
-                <TableHead className="text-right">Outstanding</TableHead>
+              <TableRow className="border-b border-slate-100">
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Flat</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Billed</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Paid</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Outstanding</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {dues.data?.map((d) => (
-                <TableRow key={d.apartmentId}>
-                  <TableCell className="font-medium">{d.apartment}</TableCell>
-                  <TableCell className="text-right">{formatPaise(d.billed)}</TableCell>
-                  <TableCell className="text-right">{formatPaise(d.paid)}</TableCell>
-                  <TableCell className="text-right font-medium text-destructive">{formatPaise(d.outstanding)}</TableCell>
+                <TableRow key={d.apartmentId} className="border-b border-slate-50 hover:bg-slate-50/60">
+                  <TableCell className="font-medium text-slate-800">{d.apartment}</TableCell>
+                  <TableCell className="text-right text-slate-600">{formatPaise(d.billed)}</TableCell>
+                  <TableCell className="text-right text-slate-600">{formatPaise(d.paid)}</TableCell>
+                  <TableCell className="text-right font-medium text-rose-600">{formatPaise(d.outstanding)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -200,7 +204,7 @@ function BillsCard() {
     queryFn: () => apiClient.listBills({ period: period || undefined, status: status === 'ALL' ? undefined : status }),
   })
   return (
-    <Card>
+    <Card className="border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>Bills</CardTitle>
       </CardHeader>
@@ -208,12 +212,12 @@ function BillsCard() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="f-period">Period</Label>
-            <Input id="f-period" className="w-32" placeholder="2026-07" value={period} onChange={(e) => setPeriod(e.target.value)} />
+            <Input id="f-period" className="w-32 h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="2026-07" value={period} onChange={(e) => setPeriod(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Status</Label>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -231,32 +235,34 @@ function BillsCard() {
         <QueryState q={bills} empty={bills.isSuccess && bills.data?.length === 0} emptyText="No bills match.">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Flat</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Paid</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Record payment</TableHead>
+              <TableRow className="border-b border-slate-100">
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Flat</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Title</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Total</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Paid</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Record payment</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {bills.data?.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="font-medium">{b.apartment}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    <span className="align-middle">{b.title}</span> <InvoiceButton billId={b.id} />
+                <TableRow key={b.id} className="border-b border-slate-50 hover:bg-slate-50/60">
+                  <TableCell className="font-medium text-slate-800">{b.apartment}</TableCell>
+                  <TableCell className="text-slate-500">
+                    <span className="align-middle text-sm">{b.title}</span> <InvoiceButton billId={b.id} />
                   </TableCell>
-                  <TableCell className="text-right">{formatPaise(b.totalAmount)}</TableCell>
-                  <TableCell className="text-right">{formatPaise(b.paidAmount ?? 0)}</TableCell>
+                  <TableCell className="text-right text-slate-700">{formatPaise(b.totalAmount)}</TableCell>
+                  <TableCell className="text-right text-slate-700">{formatPaise(b.paidAmount ?? 0)}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[b.status]}>{b.status}</Badge>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusPillClass(b.status)}`}>
+                      {b.status}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     {b.status !== 'PAID' && b.status !== 'CANCELLED' ? (
                       <RecordPayment bill={b} />
                     ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
+                      <span className="text-slate-400 text-xs">—</span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -295,31 +301,33 @@ function BillConfigForm({ initial }: { initial: BillConfig }) {
     <div className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="cfg-due">Due day of month</Label>
-        <Input id="cfg-due" className="w-24" inputMode="numeric" value={dueDay} onChange={(e) => setDueDay(e.target.value)} />
+        <Input id="cfg-due" className="w-24 h-10 rounded-xl border-slate-200 bg-slate-50" inputMode="numeric" value={dueDay} onChange={(e) => setDueDay(e.target.value)} />
       </div>
       <div className="space-y-2">
         <Label>Recurring line items</Label>
         {lines.map((l, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <Input className="w-56" placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
-            <Input className="w-32" placeholder="Amount ₹" inputMode="decimal" value={l.amount} onChange={(e) => setLine(i, { amount: e.target.value })} />
-            <Input className="w-24" placeholder="GST %" inputMode="numeric" value={l.taxRatePct} onChange={(e) => setLine(i, { taxRatePct: e.target.value })} />
-            {lines.length > 1 && (
-              <Button type="button" size="sm" variant="ghost" onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))}>
-                ✕
+          <div key={i} className="grid grid-cols-[1fr_8rem_6rem_auto] items-center gap-2">
+            <Input className="h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="Description" value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} />
+            <Input className="h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="Amount ₹" inputMode="decimal" value={l.amount} onChange={(e) => setLine(i, { amount: e.target.value })} />
+            <Input className="h-10 rounded-xl border-slate-200 bg-slate-50" placeholder="GST %" inputMode="numeric" value={l.taxRatePct} onChange={(e) => setLine(i, { taxRatePct: e.target.value })} />
+            {lines.length > 1 ? (
+              <Button type="button" size="sm" variant="ghost" onClick={() => setLines((ls) => ls.filter((_, idx) => idx !== i))} className="rounded-lg px-2">
+                <X className="h-4 w-4 text-slate-400" />
               </Button>
+            ) : (
+              <div className="w-8" />
             )}
           </div>
         ))}
-        <Button type="button" size="sm" variant="outline" onClick={() => setLines((ls) => [...ls, { description: '', amount: '', taxRatePct: '0' }])}>
+        <Button type="button" size="sm" variant="outline" onClick={() => setLines((ls) => [...ls, { description: '', amount: '', taxRatePct: '0' }])} className="rounded-xl mt-1">
           + Add line
         </Button>
       </div>
-      <Button onClick={() => save.mutate()} disabled={save.isPending}>
+      <Button onClick={() => save.mutate()} disabled={save.isPending} className="rounded-xl">
         {save.isPending ? 'Saving…' : 'Save configuration'}
       </Button>
       {save.isSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400">Saved ✓ — the monthly cron will use this template.</p>}
-      <p className="text-muted-foreground text-xs">
+      <p className="text-slate-400 text-xs">
         Bills auto-generate on the 1st of each month from this template. You can also generate any month manually above.
       </p>
     </div>
@@ -329,7 +337,7 @@ function BillConfigForm({ initial }: { initial: BillConfig }) {
 function BillConfigCard() {
   const cfg = useQuery({ queryKey: ['bill-config'], queryFn: apiClient.getBillConfig })
   return (
-    <Card>
+    <Card className="border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>Bill configuration (recurring template)</CardTitle>
       </CardHeader>
@@ -347,7 +355,7 @@ function BillingPage() {
     <div className="space-y-6">
       <PageHeader title="Billing" description="Generate maintenance bills, record payments, and track dues." />
       <BillConfigCard />
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Generate monthly bills</CardTitle>
         </CardHeader>

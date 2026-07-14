@@ -32,25 +32,30 @@ function AppHome() {
   const destination = user.role === 'ADMIN' ? '/admin' : user.role === 'GUARD' ? '/guard' : '/resident'
 
   return (
-    <div className="bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_32%),linear-gradient(180deg,#0d1626_0%,#eef4fb_24%,#eef4fb_100%)] text-foreground min-h-screen px-4 py-8">
+    <div className="min-h-screen bg-[#f0f4f8] text-foreground px-4 py-10">
       <RoleRedirect destination={destination} />
       <div className="mx-auto flex max-w-5xl flex-col gap-6">
-        <Card className="overflow-hidden rounded-[32px] border-white/10 bg-slate-950 text-white shadow-2xl">
+
+        <Card className="overflow-hidden rounded-3xl border-white/10 bg-[#0f172a] text-white shadow-2xl">
           <CardHeader className="gap-4 p-8">
-            <div className="flex items-center justify-between gap-4">
-              <div className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100">SarvaSociety</div>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 text-[#0f172a] font-black text-sm">
+                SS
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">SarvaSociety</span>
             </div>
-            <div className="space-y-3">
-              <p className="text-cyan-200 text-sm font-semibold uppercase tracking-[0.24em]">Opening app</p>
-              <CardTitle className="text-4xl font-black">Welcome, {user.name}</CardTitle>
-              <p className="max-w-2xl text-sm leading-6 text-slate-300">
-                You are signed into <span className="font-semibold text-white">{user.tenantSlug}</span> as <span className="font-semibold text-white">{user.role}</span>. SarvaSociety is taking you straight into the correct role app now.
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Opening app</p>
+              <CardTitle className="text-4xl font-extrabold tracking-tight">Welcome, {user.name}</CardTitle>
+              <p className="max-w-2xl text-sm leading-6 text-slate-400">
+                You are signed into <span className="font-semibold text-white">{user.tenantSlug}</span> as{' '}
+                <span className="font-semibold text-white">{user.role}</span>. SarvaSociety is taking you straight into the correct role app now.
               </p>
             </div>
           </CardHeader>
           <CardContent className="grid gap-4 p-8 pt-0 md:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-3">
-              <Button asChild className="h-14 rounded-2xl bg-cyan-400 px-6 text-slate-950 hover:bg-cyan-300">
+              <Button asChild className="h-12 rounded-xl bg-cyan-500 hover:bg-cyan-400 px-6 text-[#0f172a] font-bold">
                 <Link to={destination}>Open now</Link>
               </Button>
               {user.role === 'ADMIN' ? (
@@ -93,56 +98,47 @@ function RoleRedirect({ destination }: { destination: '/admin' | '/guard' | '/re
 
 function SignedOutState() {
   return (
-    <div className="bg-background text-foreground flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-xl rounded-[28px] border-border/70 bg-card/95 shadow-xl">
-        <CardHeader>
-          <p className="text-cyan-600 text-sm font-semibold uppercase tracking-[0.24em]">Authentication required</p>
-          <CardTitle className="text-3xl font-black">Sign in to continue</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Button asChild className="h-12 rounded-2xl px-6">
-            <Link to="/sign-in">Open sign-in</Link>
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center px-4">
+      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 w-full max-w-md p-8 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 text-[#0f172a] font-black text-xl mx-auto mb-5">
+          SS
+        </div>
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Sign in to continue</h1>
+        <p className="text-sm text-slate-500 mt-2 mb-6">Authentication is required to access your dashboard.</p>
+        <Button asChild className="h-12 w-full rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-semibold">
+          <Link to="/sign-in">Go to sign-in</Link>
+        </Button>
+      </div>
     </div>
   )
 }
 
 function CenteredCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="bg-background text-foreground flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-xl rounded-[28px] border-border/70 bg-card/95 shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-black">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">{body}</p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center px-4">
+      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 w-full max-w-md p-8 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 text-[#0f172a] font-black text-xl mx-auto mb-5">
+          SS
+        </div>
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h1>
+        <p className="text-sm text-slate-500 mt-2">{body}</p>
+      </div>
     </div>
   )
 }
 
 function AppOpeningShell({ title, body }: { title: string; body: string }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_32%),linear-gradient(180deg,#0d1626_0%,#eef4fb_24%,#eef4fb_100%)] px-4 py-8">
-      <div className="mx-auto flex max-w-[430px] flex-col gap-4">
-        <Card className="overflow-hidden rounded-[32px] border-white/10 bg-slate-950 text-white shadow-2xl">
-          <CardHeader className="gap-4 p-8">
-            <div className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100">SarvaSociety</div>
-            <div className="space-y-3">
-              <p className="text-cyan-200 text-sm font-semibold uppercase tracking-[0.24em]">Opening app</p>
-              <CardTitle className="text-4xl font-black">{title}</CardTitle>
-              <p className="max-w-2xl text-sm leading-6 text-slate-300">{body}</p>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-4 p-8 pt-0 md:grid-cols-3">
-            <div className="h-24 rounded-[24px] border border-white/10 bg-white/8" />
-            <div className="h-24 rounded-[24px] border border-white/10 bg-white/8" />
-            <div className="h-24 rounded-[24px] border border-white/10 bg-white/8" />
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center px-4">
+      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 w-full max-w-sm p-8 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 text-[#0f172a] font-black text-xl mx-auto mb-5">
+          SS
+        </div>
+        <h2 className="text-lg font-bold text-slate-900 tracking-tight">{title}</h2>
+        <p className="text-sm text-slate-500 mt-1">{body}</p>
+        <div className="flex items-center justify-center mt-5">
+          <div className="animate-spin border-2 border-slate-200 border-t-cyan-500 rounded-full h-6 w-6" />
+        </div>
       </div>
     </div>
   )
@@ -158,27 +154,23 @@ function MiniCard({
   body: string
 }) {
   return (
-    <Card className="rounded-[28px] border-border/70 bg-white/90 shadow-lg backdrop-blur">
-      <CardHeader className="gap-3">
-        <div className="bg-cyan-500/10 text-cyan-600 flex h-12 w-12 items-center justify-center rounded-2xl">
-          <Icon className="size-6" />
-        </div>
-        <CardTitle className="text-2xl font-black">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground leading-6">{body}</p>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-600 mb-4">
+        <Icon className="size-6" />
+      </div>
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <p className="text-sm text-slate-500 mt-1 leading-6">{body}</p>
+    </div>
   )
 }
 
 function QuickOpen({ to, title, body }: { to: '/resident' | '/guard'; title: string; body: string }) {
   return (
-    <Button asChild className="h-auto justify-start rounded-[22px] bg-white/8 px-0 py-0 text-white hover:bg-white/12" variant="ghost">
-      <Link className="flex w-full items-center justify-between gap-4 rounded-[22px] border border-white/10 p-4 text-left" to={to}>
+    <Button asChild className="h-auto justify-start rounded-xl bg-white/8 px-0 py-0 text-white hover:bg-white/12" variant="ghost">
+      <Link className="flex w-full items-center justify-between gap-4 rounded-xl border border-white/10 p-4 text-left" to={to}>
         <div>
-          <p className="font-semibold">{title}</p>
-          <p className="mt-1 text-sm text-slate-300">{body}</p>
+          <p className="text-sm font-semibold">{title}</p>
+          <p className="mt-0.5 text-xs text-slate-400">{body}</p>
         </div>
       </Link>
     </Button>
@@ -187,9 +179,9 @@ function QuickOpen({ to, title, body }: { to: '/resident' | '/guard'; title: str
 
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/8 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">{label}</p>
-      <p className="mt-2 text-lg font-bold text-white">{value}</p>
+    <div className="rounded-xl border border-white/10 bg-white/8 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1.5 text-base font-bold text-white">{value}</p>
     </div>
   )
 }

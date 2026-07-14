@@ -7,7 +7,6 @@ import { preApprovalTypeSchema, preApprovalQrValue } from '@opensociety/shared'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -62,12 +61,12 @@ function CreateForm({ apartmentOptions }: { apartmentOptions: { id: string; labe
   const canSubmit = visitorName.trim().length > 0 && !!apartmentId && !create.isPending
 
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardContent className="flex flex-wrap items-end gap-3 pt-6">
         <div className="space-y-1.5">
           <Label>Visitor name</Label>
           <Input
-            className="w-44"
+            className="w-44 h-11 rounded-xl border-slate-200 bg-slate-50"
             placeholder="e.g. Priya"
             value={visitorName}
             onChange={(e) => setVisitorName(e.target.value)}
@@ -76,7 +75,7 @@ function CreateForm({ apartmentOptions }: { apartmentOptions: { id: string; labe
         <div className="space-y-1.5">
           <Label>Phone (optional)</Label>
           <Input
-            className="w-40"
+            className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50"
             placeholder="10-digit"
             value={visitorPhone}
             onChange={(e) => setVisitorPhone(e.target.value)}
@@ -85,7 +84,7 @@ function CreateForm({ apartmentOptions }: { apartmentOptions: { id: string; labe
         <div className="space-y-1.5">
           <Label>Apartment</Label>
           <Select value={apartmentId} onValueChange={setApartmentId}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50">
               <SelectValue placeholder="Select unit" />
             </SelectTrigger>
             <SelectContent>
@@ -100,7 +99,7 @@ function CreateForm({ apartmentOptions }: { apartmentOptions: { id: string; labe
         <div className="space-y-1.5">
           <Label>Type</Label>
           <Select value={approvalType} onValueChange={(v) => setApprovalType(v as PreApprovalType)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-36 h-11 rounded-xl border-slate-200 bg-slate-50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -115,7 +114,7 @@ function CreateForm({ apartmentOptions }: { apartmentOptions: { id: string; labe
         <div className="space-y-1.5">
           <Label>Max uses</Label>
           <Input
-            className="w-24"
+            className="w-24 h-11 rounded-xl border-slate-200 bg-slate-50"
             type="number"
             min={1}
             placeholder="∞"
@@ -126,13 +125,13 @@ function CreateForm({ apartmentOptions }: { apartmentOptions: { id: string; labe
         <div className="space-y-1.5">
           <Label>Valid until</Label>
           <Input
-            className="w-40"
+            className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50"
             type="date"
             value={validUntil}
             onChange={(e) => setValidUntil(e.target.value)}
           />
         </div>
-        <Button onClick={() => create.mutate()} disabled={!canSubmit}>
+        <Button className="rounded-xl" onClick={() => create.mutate()} disabled={!canSubmit}>
           {create.isPending ? 'Generating…' : 'Generate code'}
         </Button>
         {create.isError && (
@@ -147,7 +146,7 @@ function QrButton({ code, visitorName }: { code: string; visitorName: string }) 
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setOpen(true)}>
         QR
       </Button>
       {open && (
@@ -158,16 +157,16 @@ function QrButton({ code, visitorName }: { code: string; visitorName: string }) 
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-background w-full max-w-xs rounded-lg p-6 text-center shadow-lg"
+            className="bg-white w-full max-w-xs rounded-2xl p-6 text-center shadow-lg border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="font-medium">{visitorName}</p>
-            <p className="text-muted-foreground mb-4 text-sm">Show this QR at the gate</p>
-            <div className="mx-auto inline-block rounded bg-white p-3">
+            <p className="text-slate-400 mb-4 text-sm">Show this QR at the gate</p>
+            <div className="mx-auto inline-block rounded-xl bg-white p-3 border border-slate-100">
               <QRCode value={preApprovalQrValue(code)} size={196} />
             </div>
             <p className="mt-4 font-mono text-lg tracking-widest">{code}</p>
-            <Button className="mt-4 w-full" variant="outline" onClick={() => setOpen(false)}>
+            <Button className="mt-4 w-full rounded-xl" variant="outline" onClick={() => setOpen(false)}>
               Close
             </Button>
           </div>
@@ -184,7 +183,7 @@ function RevokeButton({ id }: { id: string }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pre-approvals'] }),
   })
   return (
-    <Button size="sm" variant="outline" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+    <Button size="sm" variant="outline" className="rounded-xl" disabled={mutation.isPending} onClick={() => mutation.mutate()}>
       {mutation.isPending ? '…' : 'Revoke'}
     </Button>
   )
@@ -208,7 +207,7 @@ function PreApprovalsPage() {
   const rows = preApprovals.data ?? []
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Pre-approvals"
         description="Expected visitors — generate a code a guard redeems at the gate."
@@ -216,7 +215,7 @@ function PreApprovalsPage() {
 
       <CreateForm apartmentOptions={apartmentOptions} />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardContent className="pt-6">
           <QueryState
             q={preApprovals}
@@ -225,38 +224,38 @@ function PreApprovalsPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Visitor</TableHead>
-                  <TableHead>Apartment</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Uses</TableHead>
-                  <TableHead>Expires</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Visitor</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Apartment</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Code</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Type</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Uses</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Expires</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((p) => (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                     <TableCell className="font-medium">
                       {p.visitorName}
                       {p.visitorPhone && (
-                        <span className="text-muted-foreground block text-xs">{p.visitorPhone}</span>
+                        <span className="text-slate-400 block text-xs">{p.visitorPhone}</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{aptLabel.get(p.apartmentId) ?? '—'}</TableCell>
+                    <TableCell className="text-slate-500">{aptLabel.get(p.apartmentId) ?? '—'}</TableCell>
                     <TableCell className="font-mono tracking-widest">{p.code}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.approvalType}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-slate-500">{p.approvalType}</TableCell>
+                    <TableCell className="text-slate-500">
                       {p.useCount}
                       {p.maxUses != null ? `/${p.maxUses}` : ''}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">{formatDate(p.validUntil)}</TableCell>
+                    <TableCell className="text-slate-500 text-xs">{formatDate(p.validUntil)}</TableCell>
                     <TableCell>
-                      <Badge variant={p.isActive ? 'default' : 'secondary'}>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${p.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                         {p.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       {p.isActive && (

@@ -7,9 +7,8 @@ import { bhkTypeSchema } from '@opensociety/shared'
 import { apiClient } from '../../lib/api'
 import { parseBulk } from '@/lib/apartments-csv'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -59,11 +58,11 @@ function AddSingle() {
     >
       <div className="space-y-1.5">
         <Label htmlFor="tower">Tower</Label>
-        <Input id="tower" placeholder="A" value={tower} onChange={(e) => setTower(e.target.value)} />
+        <Input id="tower" placeholder="A" value={tower} onChange={(e) => setTower(e.target.value)} className="h-10 rounded-xl border-slate-200 bg-slate-50" />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="no">Number</Label>
-        <Input id="no" placeholder="101" value={apartmentNo} onChange={(e) => setApartmentNo(e.target.value)} />
+        <Input id="no" placeholder="101" value={apartmentNo} onChange={(e) => setApartmentNo(e.target.value)} className="h-10 rounded-xl border-slate-200 bg-slate-50" />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="floor">Floor</Label>
@@ -73,12 +72,13 @@ function AddSingle() {
           placeholder="1"
           value={floor}
           onChange={(e) => setFloor(e.target.value)}
+          className="h-10 rounded-xl border-slate-200 bg-slate-50"
         />
       </div>
       <div className="space-y-1.5">
         <Label>BHK</Label>
         <Select value={bhk} onValueChange={(v) => setBhk(v as BhkType)}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="h-10 w-full rounded-xl border-slate-200 bg-slate-50">
             <SelectValue placeholder="—" />
           </SelectTrigger>
           <SelectContent>
@@ -90,8 +90,8 @@ function AddSingle() {
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" disabled={mutation.isPending || !tower || !apartmentNo}>
-        {mutation.isPending ? 'Adding…' : 'Add'}
+      <Button type="submit" disabled={mutation.isPending || !tower || !apartmentNo} className="h-10 rounded-xl">
+        {mutation.isPending ? 'Adding…' : 'Add unit'}
       </Button>
       {mutation.isError && (
         <p className="text-destructive col-span-full text-sm">{(mutation.error as Error).message}</p>
@@ -116,14 +116,17 @@ function BulkAdd() {
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label htmlFor="bulk">CSV rows — one per line: tower,number,floor,bhk</Label>
+        <Label htmlFor="bulk" className="font-medium text-slate-700">
+          CSV rows — one per line
+        </Label>
+        <p className="text-xs text-slate-500">Format: <span className="font-mono">tower, number, floor, bhk</span></p>
         <Textarea
           id="bulk"
           rows={5}
           placeholder={'A,101,1,2BHK\nA,102,1,3BHK\nB,201,2'}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="font-mono text-xs"
+          className="rounded-xl border-slate-200 bg-slate-50 font-mono text-xs"
         />
       </div>
       {errors.length > 0 && (
@@ -138,6 +141,7 @@ function BulkAdd() {
         <Button
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending || rows.length === 0 || errors.length > 0}
+          className="rounded-xl"
         >
           {mutation.isPending ? 'Importing…' : `Import ${rows.length || ''} apartment${rows.length === 1 ? '' : 's'}`}
         </Button>
@@ -185,22 +189,22 @@ function ApartmentRow({ apt }: { apt: Apartment }) {
     return (
       <TableRow>
         <TableCell>
-          <Input value={tower} onChange={(e) => setTower(e.target.value)} className="h-8 w-20" />
+          <Input value={tower} onChange={(e) => setTower(e.target.value)} className="h-8 w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
         </TableCell>
         <TableCell>
-          <Input value={apartmentNo} onChange={(e) => setApartmentNo(e.target.value)} className="h-8 w-24" />
+          <Input value={apartmentNo} onChange={(e) => setApartmentNo(e.target.value)} className="h-8 w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
         </TableCell>
         <TableCell>
           <Input
             type="number"
             value={floor}
             onChange={(e) => setFloor(e.target.value)}
-            className="h-8 w-20"
+            className="h-8 w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
           />
         </TableCell>
         <TableCell>
           <Select value={bhk} onValueChange={(v) => setBhk(v as BhkType)}>
-            <SelectTrigger size="sm" className="w-28">
+            <SelectTrigger size="sm" className="w-full rounded-lg border-slate-200 bg-slate-50">
               <SelectValue placeholder="—" />
             </SelectTrigger>
             <SelectContent>
@@ -215,10 +219,10 @@ function ApartmentRow({ apt }: { apt: Apartment }) {
         <TableCell />
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
-            <Button size="sm" disabled={save.isPending || !tower || !apartmentNo} onClick={() => save.mutate()}>
+            <Button size="sm" disabled={save.isPending || !tower || !apartmentNo} onClick={() => save.mutate()} className="rounded-lg">
               {save.isPending ? '…' : 'Save'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)} className="rounded-lg">
               Cancel
             </Button>
           </div>
@@ -228,17 +232,19 @@ function ApartmentRow({ apt }: { apt: Apartment }) {
   }
 
   return (
-    <TableRow className={apt.isActive ? undefined : 'opacity-60'}>
-      <TableCell className="font-medium">{apt.tower}</TableCell>
-      <TableCell>{apt.apartmentNo}</TableCell>
-      <TableCell className="text-muted-foreground">{apt.floor ?? '—'}</TableCell>
-      <TableCell className="text-muted-foreground">{apt.bhkType ?? '—'}</TableCell>
+    <TableRow className={`border-b border-slate-50 hover:bg-slate-50/60 ${apt.isActive ? '' : 'opacity-60'}`}>
+      <TableCell className="font-medium text-slate-800">{apt.tower}</TableCell>
+      <TableCell className="text-slate-700">{apt.apartmentNo}</TableCell>
+      <TableCell className="text-slate-500">{apt.floor ?? '—'}</TableCell>
+      <TableCell className="text-slate-500">{apt.bhkType ?? '—'}</TableCell>
       <TableCell>
-        <Badge variant={apt.isActive ? 'default' : 'secondary'}>{apt.isActive ? 'Active' : 'Inactive'}</Badge>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${apt.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+          {apt.isActive ? 'Active' : 'Inactive'}
+        </span>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+          <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="rounded-xl">
             Edit
           </Button>
           <Button
@@ -246,6 +252,7 @@ function ApartmentRow({ apt }: { apt: Apartment }) {
             variant={apt.isActive ? 'ghost' : 'default'}
             disabled={toggleActive.isPending}
             onClick={() => toggleActive.mutate()}
+            className="rounded-xl"
           >
             {toggleActive.isPending ? '…' : apt.isActive ? 'Deactivate' : 'Activate'}
           </Button>
@@ -265,25 +272,27 @@ function ApartmentsPage() {
         description={`${apartments.data?.length ?? 0} unit${apartments.data?.length === 1 ? '' : 's'} registered`}
       />
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
-          <CardTitle>Add apartment</CardTitle>
+          <CardTitle>Add unit</CardTitle>
+          <CardDescription>Register a single apartment unit to the building.</CardDescription>
         </CardHeader>
         <CardContent>
           <AddSingle />
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Bulk import</CardTitle>
+          <CardDescription>Paste CSV rows to add multiple units at once.</CardDescription>
         </CardHeader>
         <CardContent>
           <BulkAdd />
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>All apartments</CardTitle>
         </CardHeader>
@@ -295,13 +304,13 @@ function ApartmentsPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Tower</TableHead>
-                  <TableHead>Number</TableHead>
-                  <TableHead>Floor</TableHead>
-                  <TableHead>BHK</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="border-b border-slate-100">
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-20">Tower</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-28">Number</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-20">Floor</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-28">BHK</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 w-24">Status</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { CreateNotice, NoticeCategory, NoticePriority } from '@opensociety/shared'
 import { noticePrioritySchema, noticeCategorySchema } from '@opensociety/shared'
+import { Eye, Paperclip, X } from 'lucide-react'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,11 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export const Route = createFileRoute('/admin/notices')({ component: NoticesPage })
 
-const PRIORITY_VARIANT: Record<NoticePriority, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  URGENT: 'destructive',
-  HIGH: 'destructive',
-  NORMAL: 'secondary',
-  LOW: 'outline',
+function priorityPillClass(priority: NoticePriority): string {
+  if (priority === 'URGENT' || priority === 'HIGH') return 'bg-rose-50 text-rose-700'
+  if (priority === 'NORMAL') return 'bg-amber-50 text-amber-700'
+  return 'bg-slate-100 text-slate-600'
 }
 
 function formatDate(iso: string | null): string {
@@ -41,8 +40,9 @@ function AttachmentLink({ url, name }: { url: string; name: string }) {
     }
   }
   return (
-    <Button variant="outline" size="sm" onClick={open} disabled={busy}>
-      📎 {busy ? 'Opening…' : name}
+    <Button variant="outline" size="sm" onClick={open} disabled={busy} className="rounded-xl gap-1.5">
+      <Paperclip className="h-3.5 w-3.5" />
+      {busy ? 'Opening…' : name}
     </Button>
   )
 }
@@ -57,11 +57,12 @@ function ReadReceipts({ noticeId, readCount }: { noticeId: string; readCount: nu
   })
   return (
     <div className="mt-2">
-      <Button variant="ghost" size="sm" onClick={() => setOpen((s) => !s)}>
-        👁 {readCount} read{readCount === 1 ? '' : 's'}
+      <Button variant="ghost" size="sm" onClick={() => setOpen((s) => !s)} className="rounded-xl gap-1.5 text-slate-500 hover:text-slate-700">
+        <Eye className="h-3.5 w-3.5" />
+        {readCount} read{readCount === 1 ? '' : 's'}
       </Button>
       {open && (
-        <div className="text-muted-foreground mt-1 space-y-0.5 text-xs">
+        <div className="text-slate-500 mt-1 space-y-0.5 text-xs">
           {reads.isLoading && <p>Loading…</p>}
           {reads.isSuccess && reads.data.length === 0 && <p>No one has read this yet.</p>}
           {reads.data?.map((r) => (
@@ -137,7 +138,7 @@ function CreateNoticeForm() {
     >
       <div className="space-y-1.5">
         <Label htmlFor="n-title">Title</Label>
-        <Input id="n-title" placeholder="Water supply interruption" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input id="n-title" placeholder="Water supply interruption" value={title} onChange={(e) => setTitle(e.target.value)} className="rounded-xl border-slate-200 bg-slate-50 h-10" />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="n-body">Message</Label>
@@ -147,13 +148,14 @@ function CreateNoticeForm() {
           placeholder="Details of the announcement…"
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          className="rounded-xl border-slate-200 bg-slate-50"
         />
       </div>
       <div className="flex flex-wrap items-end gap-4">
         <div className="space-y-1.5">
           <Label>Category</Label>
           <Select value={category} onValueChange={(v) => setCategory(v as NoticeCategory)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 rounded-xl border-slate-200 bg-slate-50 h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -168,7 +170,7 @@ function CreateNoticeForm() {
         <div className="space-y-1.5">
           <Label>Priority</Label>
           <Select value={priority} onValueChange={(v) => setPriority(v as NoticePriority)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-36 rounded-xl border-slate-200 bg-slate-50 h-10">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -187,27 +189,33 @@ function CreateNoticeForm() {
             type="datetime-local"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            className="w-56"
+            className="w-56 rounded-xl border-slate-200 bg-slate-50 h-10"
           />
         </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="n-file">Attachment (PDF/image, optional)</Label>
         <div className="flex items-center gap-3">
-          <Input id="n-file" type="file" accept="image/*,application/pdf" onChange={onFile} className="w-72" disabled={uploading} />
-          {uploading && <span className="text-muted-foreground text-sm">Uploading…</span>}
+          <Input id="n-file" type="file" accept="image/*,application/pdf" onChange={onFile} className="w-72 rounded-xl border-slate-200 bg-slate-50" disabled={uploading} />
+          {uploading && <span className="text-slate-400 text-sm">Uploading…</span>}
           {attachment && (
-            <span className="flex items-center gap-2 text-sm">
-              📎 {attachment.name}
-              <button type="button" className="text-destructive" onClick={() => setAttachment(null)} aria-label="Remove attachment">
-                ✕
+            <span className="flex items-center gap-2 text-sm text-slate-600">
+              <Paperclip className="h-3.5 w-3.5 text-slate-400" />
+              {attachment.name}
+              <button
+                type="button"
+                className="text-slate-400 hover:text-rose-500 transition-colors"
+                onClick={() => setAttachment(null)}
+                aria-label="Remove attachment"
+              >
+                <X className="h-3.5 w-3.5" />
               </button>
             </span>
           )}
         </div>
         {uploadError && <p className="text-destructive text-sm">{uploadError}</p>}
       </div>
-      <Button type="submit" disabled={mutation.isPending || uploading || !title.trim() || !body.trim()}>
+      <Button type="submit" disabled={mutation.isPending || uploading || !title.trim() || !body.trim()} className="rounded-xl">
         {mutation.isPending ? 'Publishing…' : 'Publish notice'}
       </Button>
       {mutation.isSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400">Published ✓</p>}
@@ -230,7 +238,7 @@ function NoticesPage() {
     <div className="space-y-6">
       <PageHeader title="Notices" description="Publish announcements to residents." />
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>New notice</CardTitle>
         </CardHeader>
@@ -239,7 +247,7 @@ function NoticesPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Archive</CardTitle>
         </CardHeader>
@@ -249,7 +257,7 @@ function NoticesPage() {
               <Label htmlFor="n-search">Search</Label>
               <Input
                 id="n-search"
-                className="w-64"
+                className="w-64 rounded-xl border-slate-200 bg-slate-50 h-10"
                 placeholder="Keyword in title or message"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
@@ -258,7 +266,7 @@ function NoticesPage() {
             <div className="space-y-1.5">
               <Label>Category</Label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 rounded-xl border-slate-200 bg-slate-50 h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -276,30 +284,30 @@ function NoticesPage() {
           <QueryState q={notices} empty={notices.isSuccess && notices.data?.length === 0} emptyText="No notices match.">
             <div className="space-y-3">
               {notices.data?.map((n) => (
-                <Card key={n.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <CardTitle className="text-base">{n.title}</CardTitle>
-                      <div className="flex shrink-0 gap-1.5">
-                        <Badge variant="outline">{n.category}</Badge>
-                        <Badge variant={PRIORITY_VARIANT[n.priority]}>{n.priority}</Badge>
-                      </div>
+                <div key={n.id} className="rounded-2xl bg-white border border-slate-100 shadow-sm p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="font-semibold text-slate-800 text-sm">{n.title}</p>
+                    <div className="flex shrink-0 gap-1.5">
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
+                        {n.category}
+                      </span>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${priorityPillClass(n.priority)}`}>
+                        {n.priority}
+                      </span>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-sm whitespace-pre-wrap">{n.body}</p>
-                    {n.attachmentUrl && (
-                      <div className="mt-3">
-                        <AttachmentLink url={n.attachmentUrl} name={n.attachmentName ?? 'Attachment'} />
-                      </div>
-                    )}
-                    <p className="text-muted-foreground mt-3 text-xs">
-                      Published {formatDate(n.publishedAt)}
-                      {n.expiresAt ? ` · expires ${formatDate(n.expiresAt)}` : ''}
-                    </p>
-                    <ReadReceipts noticeId={n.id} readCount={n.readCount ?? 0} />
-                  </CardContent>
-                </Card>
+                  </div>
+                  <p className="text-slate-500 text-sm whitespace-pre-wrap">{n.body}</p>
+                  {n.attachmentUrl && (
+                    <div className="mt-1">
+                      <AttachmentLink url={n.attachmentUrl} name={n.attachmentName ?? 'Attachment'} />
+                    </div>
+                  )}
+                  <p className="text-slate-400 text-xs">
+                    Published {formatDate(n.publishedAt)}
+                    {n.expiresAt ? ` · expires ${formatDate(n.expiresAt)}` : ''}
+                  </p>
+                  <ReadReceipts noticeId={n.id} readCount={n.readCount ?? 0} />
+                </div>
               ))}
             </div>
           </QueryState>

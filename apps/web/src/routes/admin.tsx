@@ -50,6 +50,23 @@ const NAV: { to: string; tKey: string; icon: LucideIcon }[] = [
   { to: '/admin/notices', tKey: 'nav.notices', icon: Megaphone },
 ]
 
+const NAV_GROUPS = [
+  { label: 'Overview', items: ['/admin'] },
+  { label: 'Properties', items: ['/admin/society', '/admin/apartments'] },
+  {
+    label: 'People',
+    items: ['/admin/residents', '/admin/guards', '/admin/duty', '/admin/house-help', '/admin/vehicles', '/admin/parking'],
+  },
+  {
+    label: 'Operations',
+    items: ['/admin/visitors', '/admin/pre-approvals', '/admin/tickets', '/admin/billing'],
+  },
+  {
+    label: 'Insights',
+    items: ['/admin/reports', '/admin/analytics', '/admin/notices'],
+  },
+]
+
 function AdminLayout() {
   const { isSignedIn, loading } = useAuthSession()
   const health = useQuery({ queryKey: ['health'], queryFn: apiClient.health, retry: false })
@@ -57,18 +74,25 @@ function AdminLayout() {
   const { t } = useT()
 
   if (loading) {
-    return <div className="bg-background text-foreground flex min-h-screen items-center justify-center">Loading admin access…</div>
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
+          <p className="text-sm text-slate-500">Loading admin access…</p>
+        </div>
+      </div>
+    )
   }
 
   if (!isSignedIn) {
     return (
-      <div className="bg-background text-foreground flex min-h-screen items-center justify-center px-4">
-        <div className="rounded-[28px] border border-border/70 bg-card p-6 text-center shadow-lg">
-          <p className="text-lg font-semibold">Sign in required</p>
-          <p className="text-muted-foreground mt-2 text-sm">Use the SarvaSociety sign-in page to open the admin console.</p>
-          <div className="mt-4">
-            <Link className="text-cyan-600 font-medium" to="/sign-in">
-              Open sign-in
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-sm w-full rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+          <p className="text-base font-semibold text-slate-900">Sign in required</p>
+          <p className="mt-2 text-sm text-slate-500">Use the SarvaSociety sign-in page to open the admin console.</p>
+          <div className="mt-5">
+            <Link className="text-sm font-medium text-cyan-600 hover:text-cyan-700" to="/sign-in">
+              Open sign-in →
             </Link>
           </div>
         </div>
@@ -77,15 +101,22 @@ function AdminLayout() {
   }
 
   if (me.isLoading) {
-    return <div className="bg-background text-foreground flex min-h-screen items-center justify-center">Loading admin profile…</div>
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
+          <p className="text-sm text-slate-500">Loading admin profile…</p>
+        </div>
+      </div>
+    )
   }
 
   if (me.isError) {
     return (
-      <div className="bg-background text-foreground flex min-h-screen items-center justify-center px-4">
-        <div className="rounded-[28px] border border-rose-200 bg-card p-6 text-center shadow-lg">
-          <p className="text-lg font-semibold">Admin access unavailable</p>
-          <p className="text-muted-foreground mt-2 text-sm">{String((me.error as Error)?.message ?? 'error')}</p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-sm w-full rounded-2xl border border-rose-100 bg-white p-8 text-center shadow-sm">
+          <p className="text-base font-semibold text-slate-900">Admin access unavailable</p>
+          <p className="mt-2 text-sm text-slate-500">{String((me.error as Error)?.message ?? 'error')}</p>
         </div>
       </div>
     )
@@ -93,18 +124,22 @@ function AdminLayout() {
 
   const meData = me.data
   if (!meData) {
-    return <div className="bg-background text-foreground flex min-h-screen items-center justify-center">No profile found.</div>
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <p className="text-sm text-slate-500">No profile found.</p>
+      </div>
+    )
   }
 
   if (meData.role !== 'ADMIN') {
     return (
-      <div className="bg-background text-foreground flex min-h-screen items-center justify-center px-4">
-        <div className="rounded-[28px] border border-border/70 bg-card p-6 text-center shadow-lg">
-          <p className="text-lg font-semibold">Admin role required</p>
-          <p className="text-muted-foreground mt-2 text-sm">This shell is only available to approved admins.</p>
-          <div className="mt-4">
-            <Link className="text-cyan-600 font-medium" to="/app">
-              Go back to app hub
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-sm w-full rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+          <p className="text-base font-semibold text-slate-900">Admin role required</p>
+          <p className="mt-2 text-sm text-slate-500">This shell is only available to approved admins.</p>
+          <div className="mt-5">
+            <Link className="text-sm font-medium text-cyan-600 hover:text-cyan-700" to="/app">
+              Go back to app hub →
             </Link>
           </div>
         </div>
@@ -113,93 +148,127 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#e9f5ff_0%,#f7fbff_28%,#f7fbff_100%)] text-foreground px-3 py-3 md:px-5 md:py-5">
-      <div className="mx-auto flex min-h-[calc(100vh-24px)] max-w-7xl gap-4">
-        <aside className="hidden w-72 shrink-0 flex-col rounded-[30px] bg-slate-950 p-5 text-white shadow-2xl md:flex">
-          <Link to="/" className="mb-6 flex items-center gap-3 px-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-sm font-black text-slate-950">
-              SS
-            </div>
-            <div>
-              <p className="text-lg font-black tracking-tight">SarvaSociety</p>
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Admin console</p>
-            </div>
-          </Link>
-          <div className="mb-5 rounded-[24px] border border-white/10 bg-white/6 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">Workspace</p>
-            <p className="mt-2 text-lg font-bold">{meData.tenantSlug}</p>
-            <p className="mt-1 text-sm text-slate-300">{meData.name}</p>
+    <div className="min-h-screen flex bg-slate-50">
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 bg-[#0f172a] flex-col h-screen sticky top-0 overflow-y-auto">
+        {/* Logo */}
+        <Link to="/" className="px-5 pt-5 pb-4 flex items-center gap-3 shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-[#0f172a] font-black text-sm shrink-0">
+            SS
           </div>
-          <nav className="flex flex-col gap-1.5">
-            {NAV.map(({ to, tKey, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                activeOptions={{ exact: to === '/admin' }}
-                className={cn(
-                  'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white',
-                )}
-                activeProps={{ className: 'bg-white text-slate-950 shadow-lg' }}
-              >
-                <Icon className="size-4" />
-                {t(tKey)}
-              </Link>
-            ))}
-          </nav>
-        </aside>
+          <div>
+            <p className="text-white font-bold text-base leading-tight">SarvaSociety</p>
+            <p className="text-slate-400 text-xs leading-none mt-0.5">Admin</p>
+          </div>
+        </Link>
 
-        <div className="flex min-w-0 flex-1 flex-col rounded-[30px] border border-slate-200/80 bg-white/88 shadow-xl backdrop-blur">
-          <header className="border-b border-slate-200/80 px-4 py-4 md:px-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-cyan-700 text-xs font-semibold uppercase tracking-[0.24em]">Admin dashboard</p>
-                  <h1 className="mt-2 text-2xl font-black text-slate-950 md:text-3xl">Society operations</h1>
-                  <p className="mt-1 max-w-2xl text-sm text-slate-500">
-                    Manage residents, visitors, guards, billing, and compliance from a structured workspace that stays usable on desktop and tablet widths.
-                  </p>
-                </div>
-                <div className="hidden items-center gap-3 md:flex">
-                  <Badge className="rounded-full px-3 py-1.5" variant={health.isSuccess ? 'default' : 'destructive'}>
-                    {t('header.api')}{' '}
-                    {health.isLoading ? '…' : health.isSuccess ? t('header.apiOnline') : t('header.apiOffline')}
-                  </Badge>
-                  <LanguageSwitcher />
-                  {AUTH_ENABLED ? <AuthControls /> : null}
-                  <ThemeToggle />
-                </div>
-              </div>
-              <nav className="flex gap-2 overflow-x-auto md:hidden">
-                {NAV.map(({ to, tKey }) => (
+        {/* Workspace info */}
+        <div className="mx-4 mb-4 rounded-xl bg-white/[0.06] border border-white/[0.08] px-3 py-2.5 shrink-0">
+          <p className="text-white font-semibold text-sm">{meData.tenantSlug}</p>
+          <p className="text-slate-400 text-xs mt-0.5">{meData.name}</p>
+        </div>
+
+        {/* Grouped nav */}
+        <nav className="flex-1 pb-2">
+          {NAV_GROUPS.map((group, groupIdx) => {
+            const groupNavItems = group.items
+              .map((path) => NAV.find((n) => n.to === path))
+              .filter(Boolean) as typeof NAV
+            return (
+              <div key={group.label}>
+                <p
+                  className={cn(
+                    'text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 px-4 mb-1',
+                    groupIdx === 0 ? 'mt-2' : 'mt-5',
+                  )}
+                >
+                  {group.label}
+                </p>
+                {groupNavItems.map(({ to, tKey, icon: Icon }) => (
                   <Link
                     key={to}
                     to={to}
                     activeOptions={{ exact: to === '/admin' }}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold whitespace-nowrap text-slate-500"
-                    activeProps={{ className: 'rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold whitespace-nowrap text-white' }}
+                    className="flex items-center gap-2.5 px-4 py-2.5 mx-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                    activeProps={{
+                      className:
+                        'flex items-center gap-2.5 px-4 py-2.5 mx-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/20 transition-all cursor-pointer',
+                    }}
                   >
+                    <Icon className="size-4 shrink-0" />
                     {t(tKey)}
                   </Link>
                 ))}
-              </nav>
-              <div className="flex items-center gap-3 md:hidden">
-                <Badge className="rounded-full px-3 py-1.5" variant={health.isSuccess ? 'default' : 'destructive'}>
-                  {t('header.api')}{' '}
-                  {health.isLoading ? '…' : health.isSuccess ? t('header.apiOnline') : t('header.apiOffline')}
-                </Badge>
-                <LanguageSwitcher />
-                {AUTH_ENABLED ? <AuthControls /> : null}
-                <ThemeToggle />
               </div>
-            </div>
-          </header>
+            )
+          })}
+        </nav>
 
-          <main className="flex-1 p-4 md:p-6">
-            <div className="mx-auto w-full max-w-6xl">
-              <Outlet />
-            </div>
-          </main>
+        {/* Sidebar footer */}
+        <div className="mt-auto px-4 pb-5 pt-4 border-t border-white/[0.08] shrink-0">
+          <p className="text-white text-xs font-semibold truncate">{meData.name}</p>
+          {(meData as any).email && (
+            <p className="text-slate-500 text-xs truncate mt-0.5">{(meData as any).email}</p>
+          )}
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            {AUTH_ENABLED ? <AuthControls /> : null}
+            <ThemeToggle />
+          </div>
         </div>
+      </aside>
+
+      {/* Content area */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-hidden">
+        {/* Mobile nav */}
+        <div className="md:hidden bg-white border-b border-slate-200/60">
+          <div className="px-4 py-3 flex items-center gap-3">
+            <div className="h-7 w-7 rounded-lg bg-[#0f172a] flex items-center justify-center text-cyan-400 text-xs font-black shrink-0">
+              SS
+            </div>
+            <span className="text-sm font-bold text-slate-900">SarvaSociety</span>
+          </div>
+          <div className="overflow-x-auto flex gap-2 px-4 pb-3">
+            {NAV.map(({ to, tKey }) => (
+              <Link
+                key={to}
+                to={to}
+                activeOptions={{ exact: to === '/admin' }}
+                className="rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                activeProps={{
+                  className: 'rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap bg-[#0f172a] text-white',
+                }}
+              >
+                {t(tKey)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Topbar */}
+        <header className="bg-white border-b border-slate-200/60 px-6 py-3.5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-slate-400 text-xs">Admin</span>
+            <span className="text-slate-300 text-xs">/</span>
+            <span className="font-semibold text-slate-700">SarvaSociety Admin</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              className="rounded-full px-2.5 py-1 text-xs"
+              variant={health.isSuccess ? 'default' : 'destructive'}
+            >
+              {t('header.api')}{' '}
+              {health.isLoading ? '…' : health.isSuccess ? t('header.apiOnline') : t('header.apiOffline')}
+            </Badge>
+            <LanguageSwitcher />
+            {AUTH_ENABLED ? <AuthControls /> : null}
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main className="flex-1 p-4 md:p-6">
+          <Outlet />
+        </main>
       </div>
     </div>
   )

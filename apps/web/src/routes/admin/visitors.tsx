@@ -6,7 +6,6 @@ import type { VisitorEntry, VisitorStatus } from '@opensociety/shared'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,14 +13,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 export const Route = createFileRoute('/admin/visitors')({ component: VisitorsPage })
 
-const STATUS_VARIANT: Record<VisitorStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  APPROVED: 'default',
-  ENTERED: 'default',
-  PENDING: 'secondary',
-  DENIED: 'destructive',
-  CANCELLED: 'destructive',
-  EXPIRED: 'outline',
-  EXITED: 'outline',
+function statusPillClass(status: VisitorStatus): string {
+  if (status === 'APPROVED') return 'bg-emerald-50 text-emerald-700'
+  if (status === 'ENTERED') return 'bg-blue-50 text-blue-700'
+  if (status === 'PENDING') return 'bg-amber-50 text-amber-700'
+  if (status === 'DENIED' || status === 'CANCELLED') return 'bg-rose-50 text-rose-700'
+  return 'bg-slate-100 text-slate-600'
 }
 
 const ALL_STATUSES: VisitorStatus[] = [
@@ -51,17 +48,17 @@ function DenyPanel({ entry, onDone }: { entry: VisitorEntry; onDone: () => void 
     },
   })
   return (
-    <div className="bg-muted/40 flex flex-wrap items-center gap-3 rounded-md p-3">
+    <div className="bg-slate-50 flex flex-wrap items-center gap-3 rounded-xl p-3">
       <Input
         placeholder="Reason for denial"
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="max-w-xs"
+        className="max-w-xs rounded-xl border-slate-200 bg-white h-9"
       />
-      <Button variant="destructive" disabled={!reason.trim() || mutation.isPending} onClick={() => mutation.mutate()}>
+      <Button variant="destructive" size="sm" disabled={!reason.trim() || mutation.isPending} onClick={() => mutation.mutate()} className="rounded-lg">
         {mutation.isPending ? 'Denying…' : 'Confirm deny'}
       </Button>
-      <Button variant="ghost" onClick={onDone}>
+      <Button variant="ghost" size="sm" onClick={onDone} className="rounded-lg">
         Cancel
       </Button>
       {mutation.isError && <p className="text-destructive w-full text-xs">{(mutation.error as Error).message}</p>}
@@ -86,7 +83,7 @@ function TransitionButton({
     onSuccess: () => qc.invalidateQueries({ queryKey: ['visitors'] }),
   })
   return (
-    <Button size="sm" variant={variant} disabled={mutation.isPending} onClick={() => mutation.mutate()}>
+    <Button size="sm" variant={variant} disabled={mutation.isPending} onClick={() => mutation.mutate()} className="rounded-lg">
       {mutation.isPending ? '…' : label}
     </Button>
   )
@@ -114,24 +111,37 @@ function VisitorsPage() {
   const rows = (visitors.data ?? []).filter((v) => filter === 'ALL' || v.status === filter)
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Visitor logs"
         description={`${visitors.data?.length ?? 0} total entries`}
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Button size="sm" variant={filter === 'ALL' ? 'default' : 'outline'} onClick={() => setFilter('ALL')}>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setFilter('ALL')}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            filter === 'ALL' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
           All ({visitors.data?.length ?? 0})
-        </Button>
+        </button>
         {ALL_STATUSES.map((s) => (
-          <Button key={s} size="sm" variant={filter === s ? 'default' : 'outline'} onClick={() => setFilter(s)}>
+          <button
+            key={s}
+            type="button"
+            onClick={() => setFilter(s)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              filter === s ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
             {s} ({counts[s] ?? 0})
-          </Button>
+          </button>
         ))}
       </div>
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardContent className="pt-6">
           <QueryState
             q={visitors}
@@ -140,33 +150,35 @@ function VisitorsPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Visitor</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Apartment</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Checked in</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="border-b border-slate-100">
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Visitor</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Type</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Apartment</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Created</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Checked in</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((v) => (
                   <Fragment key={v.id}>
-                    <TableRow>
-                      <TableCell className="font-medium">
+                    <TableRow className="border-b border-slate-50 hover:bg-slate-50/60">
+                      <TableCell className="font-medium text-slate-800">
                         {v.visitorName}
                         {v.visitorPhone && (
-                          <span className="text-muted-foreground block text-xs">{v.visitorPhone}</span>
+                          <span className="block text-xs text-slate-400">{v.visitorPhone}</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{v.type}</TableCell>
-                      <TableCell className="text-muted-foreground">{aptLabel.get(v.apartmentId) ?? '—'}</TableCell>
+                      <TableCell className="text-slate-500 text-sm">{v.type}</TableCell>
+                      <TableCell className="text-slate-500 text-sm">{aptLabel.get(v.apartmentId) ?? '—'}</TableCell>
                       <TableCell>
-                        <Badge variant={STATUS_VARIANT[v.status]}>{v.status}</Badge>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusPillClass(v.status)}`}>
+                          {v.status}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-xs">{formatTime(v.createdAt)}</TableCell>
-                      <TableCell className="text-muted-foreground text-xs">{formatTime(v.checkInAt)}</TableCell>
+                      <TableCell className="text-slate-400 text-xs">{formatTime(v.createdAt)}</TableCell>
+                      <TableCell className="text-slate-400 text-xs">{formatTime(v.checkInAt)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {availableVisitorActions(v.status).map((action) => {
@@ -205,6 +217,7 @@ function VisitorsPage() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => setDenying(denying === v.id ? null : v.id)}
+                                  className="rounded-lg"
                                 >
                                   {denying === v.id ? 'Close' : 'Deny'}
                                 </Button>
@@ -215,8 +228,8 @@ function VisitorsPage() {
                       </TableCell>
                     </TableRow>
                     {denying === v.id && (
-                      <TableRow>
-                        <TableCell colSpan={7}>
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell colSpan={7} className="py-2 px-4">
                           <DenyPanel entry={v} onDone={() => setDenying(null)} />
                         </TableCell>
                       </TableRow>

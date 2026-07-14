@@ -11,6 +11,7 @@ import {
   MessageSquareText,
   UserRound,
   Wrench,
+  X,
 } from 'lucide-react'
 import type { Notice, PaymentMethod } from '@opensociety/shared'
 import { formatPaise, paymentMethodSchema } from '@opensociety/shared'
@@ -141,210 +142,295 @@ function ResidentPage() {
     .slice(0, 4)
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] px-3 py-4 text-slate-950">
+    <div className="min-h-screen bg-[#f0f4f8]">
       <PushPermissionModal />
 
-      <div className="mx-auto flex max-w-[420px] flex-col gap-3 pb-28">
-        <div className="rounded-[28px] border border-slate-200/80 bg-white/92 p-4 shadow-[0_12px_32px_rgba(148,163,184,0.14)] backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
+      <div className="mx-auto flex max-w-[430px] flex-col gap-3 px-4 py-5 pb-24">
+
+        {/* ── Hero Header Card ── */}
+        <div className="rounded-3xl bg-[#0f172a] p-5">
+          {/* Top row */}
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-700">SarvaSociety</p>
-              <h1 className="mt-1 truncate text-[1.15rem] font-black text-slate-950">{homeLabel}</h1>
-              <p className="mt-0.5 truncate text-sm text-slate-500">Hi, {meData.name}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">SarvaSociety</p>
+              <h1 className="mt-1 truncate text-xl font-bold text-white">{homeLabel}</h1>
+              <p className="mt-0.5 truncate text-sm text-slate-400">Hello, {meData.name}</p>
             </div>
-            <button
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700"
-              onClick={() => setProfileOpen(true)}
-              type="button"
-            >
-              <span className="text-sm font-black">{meData.name.slice(0, 1).toUpperCase()}</span>
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              {/* Bell with unread badge */}
+              <div className="relative">
+                <button
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-slate-300 hover:bg-white/20 transition-colors"
+                  type="button"
+                  onClick={() => setActiveTab('community')}
+                >
+                  <Bell className="size-4" />
+                </button>
+                {unreadAlerts.length > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-500 text-[9px] font-bold text-white">
+                    {unreadAlerts.length > 9 ? '9+' : unreadAlerts.length}
+                  </span>
+                )}
+              </div>
+              {/* Avatar */}
+              <button
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-white font-bold text-sm hover:bg-cyan-400 transition-colors"
+                onClick={() => setProfileOpen(true)}
+                type="button"
+              >
+                {meData.name.slice(0, 1).toUpperCase()}
+              </button>
+            </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <QuickAction icon={Bell} label="Pre-Approve" />
-            <QuickAction icon={UserRound} label="Daily Help" />
-            <QuickAction icon={CreditCard} label="Payments" />
-            <QuickAction icon={Wrench} label="Services" />
+          {/* Quick Actions 2×2 grid */}
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 p-3">
+              <Bell className="size-5 text-cyan-400" />
+              <span className="text-xs font-medium text-white">Pre-Approve</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 p-3">
+              <UserRound className="size-5 text-violet-400" />
+              <span className="text-xs font-medium text-white">Daily Help</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 p-3">
+              <CreditCard className="size-5 text-emerald-400" />
+              <span className="text-xs font-medium text-white">Payments</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 p-3">
+              <Wrench className="size-5 text-amber-400" />
+              <span className="text-xs font-medium text-white">Services</span>
+            </div>
           </div>
         </div>
 
+        {/* ── Home Tab ── */}
         {activeTab === 'home' ? (
           <>
-            <CompactCard title="Daily help" subtitle="Assigned staff for your flat.">
-              <div className="space-y-2">
-                {highlightedHouseHelp.map(({ helper, apartmentLabel }) => (
-                  <div key={`${apartmentLabel}-${helper.id}`} className="flex items-center gap-3 rounded-[18px] bg-slate-50 px-3 py-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-sky-50 text-sky-700">
-                      <UserRound className="size-5" />
+            {/* Summary Pills */}
+            <div className="grid grid-cols-3 gap-3">
+              <SummaryPill label="Alerts" value={String(unreadAlerts.length)} />
+              <SummaryPill label="Notices" value={String(notices.data?.length ?? 0)} />
+              <SummaryPill label="Flats" value={String(myApartments.data?.length ?? 0)} />
+            </div>
+
+            {/* Daily Help */}
+            <SectionCard label="Daily Help" title="Assigned staff for your flat">
+              {highlightedHouseHelp.length === 0 ? (
+                <EmptyState text="No assigned house help yet." />
+              ) : (
+                highlightedHouseHelp.map(({ helper, apartmentLabel }) => (
+                  <div key={`${apartmentLabel}-${helper.id}`} className="flex items-center gap-3 border-b border-slate-50 py-2.5 last:border-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+                      {helper.name.slice(0, 1).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-950">{helper.name}</p>
-                      <p className="truncate text-xs text-slate-500">
-                        {helper.type} · {apartmentLabel} · Trust {helper.trustScore}/100
+                      <p className="truncate text-sm font-semibold text-slate-900">{helper.name}</p>
+                      <p className="truncate text-xs text-slate-400">
+                        {helper.type} · {apartmentLabel}
                       </p>
                     </div>
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700">
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                        helper.verificationLevel === 'VERIFIED'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-amber-50 text-amber-700'
+                      }`}
+                    >
                       {helper.verificationLevel}
                     </span>
                   </div>
-                ))}
-                {highlightedHouseHelp.length === 0 ? <EmptyCopy text="No assigned house help yet." /> : null}
-              </div>
-            </CompactCard>
+                ))
+              )}
+            </SectionCard>
 
-            <CompactCard title="Notice board" subtitle="Important updates from your society.">
-              <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-                {(notices.data ?? []).map((notice) => (
-                  <button
-                    key={notice.id}
-                    className="w-full rounded-[18px] border border-slate-200 bg-white px-3 py-3 text-left shadow-sm"
-                    onClick={() => {
-                      setActiveNotice(notice)
-                      if (!notice.read) markNoticeRead.mutate(notice.id)
-                    }}
-                    type="button"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-amber-50 text-amber-700">
-                        <FileText className="size-5" />
-                      </div>
+            {/* Notice Board */}
+            <SectionCard label="Notice Board" title="Important updates from your society">
+              <div className="max-h-[22rem] overflow-y-auto">
+                {(notices.data ?? []).length === 0 ? (
+                  <EmptyState text="No notices yet." />
+                ) : (
+                  (notices.data ?? []).map((notice) => (
+                    <button
+                      key={notice.id}
+                      className="relative flex w-full gap-3 border-b border-slate-50 py-3 text-left last:border-0 hover:bg-slate-50 transition-colors"
+                      onClick={() => {
+                        setActiveNotice(notice)
+                        if (!notice.read) markNoticeRead.mutate(notice.id)
+                      }}
+                      type="button"
+                    >
+                      <div
+                        className={`mt-1 w-1 shrink-0 self-stretch rounded-full ${
+                          notice.priority === 'HIGH'
+                            ? 'bg-rose-400'
+                            : notice.priority === 'MEDIUM'
+                            ? 'bg-amber-400'
+                            : 'bg-slate-300'
+                        }`}
+                      />
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-sm font-bold text-slate-950">{notice.title}</p>
-                          <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-700">
-                            {notice.priority}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{notice.category}</p>
-                        <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">{notice.body}</p>
+                        <p className="truncate text-sm font-semibold text-slate-900">{notice.title}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-400">{notice.category}</p>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{notice.body}</p>
                       </div>
-                    </div>
-                  </button>
-                ))}
-                {(notices.data ?? []).length === 0 ? <EmptyCopy text="No notices yet." /> : null}
+                      {!notice.read && (
+                        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-cyan-500" />
+                      )}
+                    </button>
+                  ))
+                )}
               </div>
-            </CompactCard>
-
-            <CompactCard title="Home snapshot" subtitle="Quick counts that matter right now.">
-              <div className="grid grid-cols-3 gap-2">
-                <SummaryPill label="Alerts" value={String(unreadAlerts.length)} />
-                <SummaryPill label="Notices" value={String(notices.data?.length ?? 0)} />
-                <SummaryPill label="Flats" value={String(myApartments.data?.length ?? 0)} />
-              </div>
-            </CompactCard>
+            </SectionCard>
           </>
         ) : null}
 
+        {/* ── Community Tab ── */}
         {activeTab === 'community' ? (
-          <CompactCard title="Community" subtitle="Notices and unread alerts together.">
-            <div className="max-h-[34rem] space-y-2 overflow-y-auto pr-1">
+          <SectionCard label="Community" title="Notices and alerts">
+            <div className="max-h-[34rem] overflow-y-auto">
               {unreadAlerts.map((alert) => (
                 <button
                   key={alert.id}
-                  className="w-full rounded-[18px] border border-amber-200 bg-amber-50 px-3 py-3 text-left"
+                  className="flex w-full gap-3 border-b border-slate-50 py-3 text-left last:border-0 hover:bg-slate-50 transition-colors"
                   onClick={() => markNotificationRead.mutate(alert.id)}
                   type="button"
                 >
-                  <p className="text-sm font-bold text-slate-950">{alert.title}</p>
-                  <p className="mt-1 text-sm leading-5 text-slate-600">{alert.body}</p>
+                  <div className="mt-1 w-1 shrink-0 self-stretch rounded-full bg-amber-400" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-900">{alert.title}</p>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{alert.body}</p>
+                  </div>
+                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
                 </button>
               ))}
               {(notices.data ?? []).map((notice) => (
                 <button
                   key={`community-${notice.id}`}
-                  className="w-full rounded-[18px] border border-slate-200 bg-white px-3 py-3 text-left shadow-sm"
+                  className="relative flex w-full gap-3 border-b border-slate-50 py-3 text-left last:border-0 hover:bg-slate-50 transition-colors"
                   onClick={() => {
                     setActiveNotice(notice)
                     if (!notice.read) markNoticeRead.mutate(notice.id)
                   }}
                   type="button"
                 >
-                  <p className="text-sm font-bold text-slate-950">{notice.title}</p>
-                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{notice.category}</p>
-                  <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">{notice.body}</p>
+                  <div
+                    className={`mt-1 w-1 shrink-0 self-stretch rounded-full ${
+                      notice.priority === 'HIGH'
+                        ? 'bg-rose-400'
+                        : notice.priority === 'MEDIUM'
+                        ? 'bg-amber-400'
+                        : 'bg-slate-300'
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-900">{notice.title}</p>
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400">{notice.category}</p>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{notice.body}</p>
+                  </div>
+                  {!notice.read && (
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-cyan-500" />
+                  )}
                 </button>
               ))}
-              {unreadAlerts.length === 0 && (notices.data ?? []).length === 0 ? <EmptyCopy text="No community items yet." /> : null}
+              {unreadAlerts.length === 0 && (notices.data ?? []).length === 0 ? (
+                <EmptyState text="No community items yet." />
+              ) : null}
             </div>
-          </CompactCard>
+          </SectionCard>
         ) : null}
 
+        {/* ── Homes Tab ── */}
         {activeTab === 'homes' ? (
           <>
-            <CompactCard title="My homes" subtitle="Flat information for this account.">
-              <div className="space-y-2">
-                {(myApartments.data ?? []).map((apartment) => (
-                  <div key={apartment.id} className="rounded-[18px] bg-slate-50 px-3 py-3">
-                    <p className="text-sm font-bold text-slate-950">
-                      {apartment.tower}-{apartment.apartmentNo}
-                    </p>
-                    <p className="mt-0.5 text-sm text-slate-500">
-                      Floor {apartment.floor ?? '—'} · {apartment.bhkType ?? 'Home'}
-                    </p>
+            <SectionCard label="My Homes" title="Flat information for this account">
+              {(myApartments.data ?? []).length === 0 ? (
+                <EmptyState text="No apartments linked to this resident yet." />
+              ) : (
+                (myApartments.data ?? []).map((apartment) => (
+                  <div key={apartment.id} className="flex items-center justify-between border-b border-slate-50 py-2.5 last:border-0">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {apartment.tower}-{apartment.apartmentNo}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Floor {apartment.floor ?? '—'} · {apartment.bhkType ?? 'Home'}
+                      </p>
+                    </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                      <Building2 className="size-4" />
+                    </div>
                   </div>
-                ))}
-                {(myApartments.data ?? []).length === 0 ? <EmptyCopy text="No apartments linked to this resident yet." /> : null}
-              </div>
-            </CompactCard>
+                ))
+              )}
+            </SectionCard>
 
-            <CompactCard title="Vehicles" subtitle="Registered vehicles for your homes.">
-              <div className="space-y-2">
-                {(vehicles.data ?? []).map((vehicle) => (
-                  <div key={vehicle.id} className="flex items-center gap-3 rounded-[18px] bg-slate-50 px-3 py-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white text-slate-700">
+            <SectionCard label="Vehicles" title="Registered vehicles for your homes">
+              {(vehicles.data ?? []).length === 0 ? (
+                <EmptyState text="No vehicles registered yet." />
+              ) : (
+                (vehicles.data ?? []).map((vehicle) => (
+                  <div key={vehicle.id} className="flex items-center gap-3 border-b border-slate-50 py-2.5 last:border-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                       <CarFront className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-950">{vehicle.registrationNumber}</p>
-                      <p className="truncate text-sm text-slate-500">
+                      <p className="truncate text-sm font-semibold text-slate-900">{vehicle.registrationNumber}</p>
+                      <p className="truncate text-xs text-slate-400">
                         {vehicle.type} · {vehicle.make ?? 'Unknown make'}
                       </p>
                     </div>
                   </div>
-                ))}
-                {(vehicles.data ?? []).length === 0 ? <EmptyCopy text="No vehicles registered yet." /> : null}
-              </div>
-            </CompactCard>
+                ))
+              )}
+            </SectionCard>
           </>
         ) : null}
 
+        {/* ── Services Tab ── */}
         {activeTab === 'services' ? (
           <>
-            <CompactCard title="Payments" subtitle="Bills and payment records belong here, not on the home screen.">
-              <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
-                {outstandingBills.map((bill) => (
-                  <BillPayCard key={bill.id} bill={bill} />
-                ))}
-                {outstandingBills.length === 0 ? <EmptyCopy text="No outstanding bills." /> : null}
+            <SectionCard label="Payments" title="Outstanding bills">
+              <div className="max-h-[28rem] overflow-y-auto">
+                {outstandingBills.length === 0 ? (
+                  <EmptyState text="No outstanding bills." />
+                ) : (
+                  outstandingBills.map((bill) => (
+                    <BillPayCard key={bill.id} bill={bill} />
+                  ))
+                )}
               </div>
-            </CompactCard>
+            </SectionCard>
 
-            <CompactCard title="Maintenance services" subtitle="Track the tickets raised for your society account.">
-              <div className="space-y-2">
-                {(tickets.data ?? []).map((ticket) => (
-                  <div key={ticket.id} className="rounded-[18px] bg-slate-50 px-3 py-3">
+            <SectionCard label="Maintenance" title="Service tickets">
+              {(tickets.data ?? []).length === 0 ? (
+                <EmptyState text="No maintenance tickets yet." />
+              ) : (
+                (tickets.data ?? []).map((ticket) => (
+                  <div key={ticket.id} className="border-b border-slate-50 py-3 last:border-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-slate-950">{ticket.title}</p>
-                        <p className="mt-0.5 text-sm text-slate-500">{ticket.category} · {ticket.priority}</p>
+                        <p className="truncate text-sm font-semibold text-slate-900">{ticket.title}</p>
+                        <p className="mt-0.5 text-xs text-slate-400">
+                          {ticket.category} · {ticket.priority}
+                        </p>
                       </div>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-600">
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
                         {ticket.status}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm leading-5 text-slate-600">{ticket.description}</p>
+                    <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">{ticket.description}</p>
                   </div>
-                ))}
-                {(tickets.data ?? []).length === 0 ? <EmptyCopy text="No maintenance tickets yet." /> : null}
-              </div>
-            </CompactCard>
+                ))
+              )}
+            </SectionCard>
           </>
         ) : null}
       </div>
 
-      <div className="fixed inset-x-0 bottom-4 z-40 px-3">
-        <div className="mx-auto flex max-w-[420px] items-center justify-between rounded-[22px] border border-slate-200/80 bg-white/95 p-2 shadow-[0_16px_40px_rgba(148,163,184,0.2)] backdrop-blur">
+      {/* ── Bottom Tab Bar ── */}
+      <div className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+        <div className="mx-auto flex max-w-[430px] items-stretch">
           <BottomTab active={activeTab === 'home'} icon={Home} label="Home" onClick={() => setActiveTab('home')} />
           <BottomTab active={activeTab === 'community'} icon={MessageSquareText} label="Community" onClick={() => setActiveTab('community')} />
           <BottomTab active={activeTab === 'homes'} icon={Building2} label="Homes" onClick={() => setActiveTab('homes')} />
@@ -352,31 +438,43 @@ function ResidentPage() {
         </div>
       </div>
 
+      {/* ── Notice Detail Overlay ── */}
       {activeNotice ? (
         <OverlayCard onClose={() => setActiveNotice(null)}>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-700">{activeNotice.category}</p>
-          <h2 className="mt-3 text-xl font-black text-slate-950">{activeNotice.title}</h2>
-          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{activeNotice.priority}</p>
-          <div className="mt-5 max-h-[55vh] overflow-y-auto pr-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-600">{activeNotice.category}</p>
+          <h2 className="mt-2 text-xl font-bold text-slate-900">{activeNotice.title}</h2>
+          <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-400">{activeNotice.priority} priority</p>
+          <div className="mt-4 max-h-[55vh] overflow-y-auto pr-1">
             <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">{activeNotice.body}</p>
           </div>
         </OverlayCard>
       ) : null}
 
+      {/* ── Profile Overlay ── */}
       {profileOpen ? (
         <OverlayCard onClose={() => setProfileOpen(false)}>
-          <h2 className="text-xl font-black text-slate-950">Resident profile</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Update the name and phone number used in SarvaSociety.</p>
+          <h2 className="text-xl font-bold text-slate-900">Resident profile</h2>
+          <p className="mt-1.5 text-sm leading-6 text-slate-500">Update your name and phone number.</p>
           <div className="mt-5 space-y-3">
-            <Input className="h-11 rounded-2xl" onChange={(e) => setProfileName(e.target.value)} placeholder="Full name" value={profileName} />
-            <Input className="h-11 rounded-2xl" onChange={(e) => setProfilePhone(e.target.value)} placeholder="Phone number" value={profilePhone} />
+            <Input
+              className="h-11 rounded-xl border-slate-200 bg-slate-50"
+              onChange={(e) => setProfileName(e.target.value)}
+              placeholder="Full name"
+              value={profileName}
+            />
+            <Input
+              className="h-11 rounded-xl border-slate-200 bg-slate-50"
+              onChange={(e) => setProfilePhone(e.target.value)}
+              placeholder="Phone number"
+              value={profilePhone}
+            />
           </div>
           <div className="mt-5 flex gap-3">
-            <Button className="h-11 flex-1 rounded-2xl" onClick={() => setProfileOpen(false)} variant="outline">
+            <Button className="h-11 flex-1 rounded-xl" onClick={() => setProfileOpen(false)} variant="outline">
               Close
             </Button>
             <Button
-              className="h-11 flex-1 rounded-2xl bg-slate-950 text-white hover:bg-slate-800"
+              className="h-11 flex-1 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
               disabled={updateProfile.isPending || !profileName.trim()}
               onClick={() =>
                 updateProfile.mutate(
@@ -388,7 +486,7 @@ function ResidentPage() {
               {updateProfile.isPending ? 'Saving…' : 'Save'}
             </Button>
           </div>
-          <Button className="mt-3 h-11 w-full rounded-2xl" onClick={() => signOut()} variant="ghost">
+          <Button className="mt-3 h-11 w-full rounded-xl text-rose-500 hover:text-rose-600" onClick={() => signOut()} variant="ghost">
             Sign out
           </Button>
         </OverlayCard>
@@ -397,48 +495,33 @@ function ResidentPage() {
   )
 }
 
-function CompactCard({
+/* ─────────────────────────── Sub-components ─────────────────────────── */
+
+function SectionCard({
+  label,
   title,
-  subtitle,
   children,
 }: {
+  label: string
   title: string
-  subtitle: string
   children: React.ReactNode
 }) {
   return (
-    <Card className="rounded-[24px] border-slate-200/80 bg-white/92 shadow-[0_12px_28px_rgba(148,163,184,0.12)]">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-black text-slate-950">{title}</CardTitle>
-        <p className="text-sm leading-5 text-slate-500">{subtitle}</p>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  )
-}
-
-function QuickAction({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof Bell
-  label: string
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-[18px] bg-slate-50 px-3 py-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-white text-slate-900 shadow-sm">
-        <Icon className="size-5" />
+    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+      <div className="border-b border-slate-50 px-4 pb-3 pt-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+        <p className="mt-0.5 text-base font-bold text-slate-900">{title}</p>
       </div>
-      <p className="text-sm font-bold text-slate-900">{label}</p>
+      <div className="px-4 pb-4 pt-3">{children}</div>
     </div>
   )
 }
 
 function SummaryPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[18px] bg-slate-50 px-3 py-3 text-center">
-      <p className="text-lg font-black text-slate-950">{value}</p>
-      <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{label}</p>
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 text-center shadow-sm">
+      <p className="text-2xl font-bold text-slate-900">{value}</p>
+      <p className="mt-1 text-[10px] uppercase tracking-widest text-slate-400">{label}</p>
     </div>
   )
 }
@@ -456,12 +539,21 @@ function BottomTab({
 }) {
   return (
     <button
-      className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-[18px] px-2 py-2 text-center transition ${active ? 'bg-slate-950 text-white' : 'text-slate-400'}`}
+      className="relative flex flex-1 flex-col items-center justify-center gap-1 py-3"
       onClick={onClick}
       type="button"
     >
-      <Icon className="size-4" />
-      <span className={`truncate text-[10px] font-bold uppercase tracking-[0.12em] ${active ? 'text-white' : 'text-slate-400'}`}>{label}</span>
+      {active && (
+        <span className="absolute inset-x-0 top-0 h-0.5 rounded-b-full bg-cyan-500" />
+      )}
+      <Icon className={`size-5 ${active ? 'text-cyan-600' : 'text-slate-400'}`} />
+      <span
+        className={`text-[10px] uppercase tracking-wider ${
+          active ? 'font-semibold text-cyan-600' : 'font-medium text-slate-400'
+        }`}
+      >
+        {label}
+      </span>
     </button>
   )
 }
@@ -488,18 +580,23 @@ function BillPayCard({ bill }: { bill: Awaited<ReturnType<typeof apiClient.listB
   const outstanding = bill.totalAmount - (bill.paidAmount ?? 0)
 
   return (
-    <div className="rounded-[18px] bg-slate-50 px-3 py-3">
+    <div className="mb-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm last:mb-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-slate-950">{bill.title}</p>
-          <p className="mt-0.5 text-sm text-slate-500">{bill.periodMonth ?? 'One-time bill'}</p>
+          <p className="truncate font-semibold text-slate-900">{bill.title}</p>
+          <p className="mt-0.5 text-xs text-slate-400">{bill.periodMonth ?? 'One-time bill'}</p>
         </div>
-        <p className="shrink-0 text-sm font-black text-slate-950">{formatPaise(outstanding)}</p>
+        <p className="shrink-0 text-2xl font-bold text-slate-900">{formatPaise(outstanding)}</p>
       </div>
-      <div className="mt-3 space-y-2">
-        <Input className="h-10 rounded-2xl bg-white" onChange={(e) => setAmount(e.target.value)} placeholder="Amount in INR" value={amount} />
+      <div className="mt-4 space-y-2">
+        <Input
+          className="h-11 rounded-xl border-slate-200 bg-slate-50"
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount in INR"
+          value={amount}
+        />
         <Select onValueChange={(value) => setMethod(value as PaymentMethod)} value={method}>
-          <SelectTrigger className="h-10 rounded-2xl bg-white">
+          <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -510,8 +607,17 @@ function BillPayCard({ bill }: { bill: Awaited<ReturnType<typeof apiClient.listB
             ))}
           </SelectContent>
         </Select>
-        <Input className="h-10 rounded-2xl bg-white" onChange={(e) => setReference(e.target.value)} placeholder="Reference / UTR" value={reference} />
-        <Button className="h-10 w-full rounded-2xl bg-amber-300 text-slate-950 hover:bg-amber-200" disabled={pay.isPending || !amount} onClick={() => pay.mutate()}>
+        <Input
+          className="h-11 rounded-xl border-slate-200 bg-slate-50"
+          onChange={(e) => setReference(e.target.value)}
+          placeholder="Reference / UTR"
+          value={reference}
+        />
+        <Button
+          className="h-11 w-full rounded-xl bg-emerald-600 font-semibold text-white hover:bg-emerald-700"
+          disabled={pay.isPending || !amount}
+          onClick={() => pay.mutate()}
+        >
           {pay.isPending ? 'Processing…' : 'Make payment'}
         </Button>
       </div>
@@ -521,8 +627,13 @@ function BillPayCard({ bill }: { bill: Awaited<ReturnType<typeof apiClient.listB
   )
 }
 
-function EmptyCopy({ text }: { text: string }) {
-  return <p className="rounded-[18px] bg-slate-50 px-3 py-4 text-sm text-slate-500">{text}</p>
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col items-center py-8">
+      <FileText className="size-10 text-slate-300" />
+      <p className="mt-3 text-sm text-slate-400">{text}</p>
+    </div>
+  )
 }
 
 function OverlayCard({
@@ -533,14 +644,17 @@ function OverlayCard({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-4 sm:items-center">
-      <div className="w-full max-w-md rounded-[28px] bg-white p-5 shadow-2xl">
-        <div className="flex justify-end">
-          <Button className="h-10 rounded-2xl" onClick={onClose} variant="outline">
-            Close
-          </Button>
-        </div>
-        <div className="mt-2">{children}</div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-t-3xl bg-white p-5 max-h-[85vh] flex flex-col">
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-200" />
+        <button
+          className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+          onClick={onClose}
+          type="button"
+        >
+          <X className="size-4" />
+        </button>
+        <div className="overflow-y-auto">{children}</div>
       </div>
     </div>
   )
@@ -548,41 +662,54 @@ function OverlayCard({
 
 function StateCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <Card className="w-full max-w-xl rounded-[24px] border-slate-200/80 bg-white/95 shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-xl font-black text-slate-950">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-slate-500">{body}</p>
-        </CardContent>
-      </Card>
+    <div className="flex min-h-screen items-center justify-center bg-[#f0f4f8] px-4">
+      <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <div className="border-b border-slate-50 px-5 pb-3 pt-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">SarvaSociety</p>
+          <p className="mt-1 text-base font-bold text-slate-900">{title}</p>
+        </div>
+        <div className="px-5 py-4">
+          <p className="text-sm text-slate-500">{body}</p>
+        </div>
+      </div>
     </div>
   )
 }
 
 function ResidentLoadingShell({ title, body }: { title: string; body: string }) {
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] px-3 py-4 text-slate-950">
-      <div className="mx-auto flex max-w-[420px] flex-col gap-3">
-        <div className="rounded-[28px] border border-slate-200/80 bg-white/92 p-4 shadow-[0_12px_32px_rgba(148,163,184,0.14)]">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-cyan-700">SarvaSociety</p>
-          <h1 className="mt-2 text-lg font-black text-slate-950">{title}</h1>
-          <p className="mt-1 text-sm text-slate-500">{body}</p>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="h-16 rounded-[18px] bg-slate-50" />
-            <div className="h-16 rounded-[18px] bg-slate-50" />
-            <div className="h-16 rounded-[18px] bg-slate-50" />
-            <div className="h-16 rounded-[18px] bg-slate-50" />
+    <div className="min-h-screen bg-[#f0f4f8] px-4 py-5">
+      <div className="mx-auto flex max-w-[430px] flex-col gap-3">
+        {/* Loading hero */}
+        <div className="rounded-3xl bg-[#0f172a] p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">SarvaSociety</p>
+          <h1 className="mt-2 text-xl font-bold text-white">{title}</h1>
+          <p className="mt-1 text-sm text-slate-400">{body}</p>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="h-16 animate-pulse rounded-2xl bg-white/10" />
+            <div className="h-16 animate-pulse rounded-2xl bg-white/10" />
+            <div className="h-16 animate-pulse rounded-2xl bg-white/10" />
+            <div className="h-16 animate-pulse rounded-2xl bg-white/10" />
           </div>
         </div>
-        <CompactCard title="Loading profile" subtitle="Bringing your resident space back exactly where you left it.">
-          <div className="space-y-2">
-            <div className="h-20 rounded-[18px] bg-slate-50" />
-            <div className="h-20 rounded-[18px] bg-slate-50" />
-            <div className="h-20 rounded-[18px] bg-slate-50" />
+        {/* Loading summary pills */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+        </div>
+        {/* Loading section card */}
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="border-b border-slate-50 px-4 pb-3 pt-4">
+            <div className="h-2.5 w-20 animate-pulse rounded-full bg-slate-100" />
+            <div className="mt-2 h-4 w-40 animate-pulse rounded-full bg-slate-100" />
           </div>
-        </CompactCard>
+          <div className="space-y-3 px-4 pb-4 pt-3">
+            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
+            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
+            <div className="h-14 animate-pulse rounded-xl bg-slate-100" />
+          </div>
+        </div>
       </div>
     </div>
   )

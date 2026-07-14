@@ -15,7 +15,6 @@ import {
 
 import { apiClient, type HouseHelpRow } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -75,7 +74,7 @@ function AddHouseHelp() {
         <Label htmlFor="hh-name">Name</Label>
         <Input
           id="hh-name"
-          className="w-44"
+          className="w-44 h-11 rounded-xl border-slate-200 bg-slate-50"
           placeholder="Lakshmi Devi"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -85,7 +84,7 @@ function AddHouseHelp() {
         <Label htmlFor="hh-phone">Phone</Label>
         <Input
           id="hh-phone"
-          className="w-36"
+          className="w-36 h-11 rounded-xl border-slate-200 bg-slate-50"
           placeholder="+91…"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -94,7 +93,7 @@ function AddHouseHelp() {
       <div className="space-y-1.5">
         <Label>Type</Label>
         <Select value={type} onValueChange={(v) => setType(v as HouseHelpType)}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36 h-11 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -109,7 +108,7 @@ function AddHouseHelp() {
       <div className="space-y-1.5">
         <Label>ID proof</Label>
         <Select value={idProofType} onValueChange={(v) => setIdProofType(v as IdProofType)}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -125,13 +124,13 @@ function AddHouseHelp() {
         <Label htmlFor="hh-idnum">ID number</Label>
         <Input
           id="hh-idnum"
-          className="w-44"
+          className="w-44 h-11 rounded-xl border-slate-200 bg-slate-50"
           placeholder="optional"
           value={idProofNumber}
           onChange={(e) => setIdProofNumber(e.target.value)}
         />
       </div>
-      <Button type="submit" disabled={mutation.isPending || !name.trim()}>
+      <Button type="submit" className="rounded-xl" disabled={mutation.isPending || !name.trim()}>
         {mutation.isPending ? 'Adding…' : 'Add help'}
       </Button>
       {mutation.isError && (
@@ -145,8 +144,10 @@ function TrustBadge({ help }: { help: HouseHelpRow }) {
   const verified = help.verificationLevel === 'VERIFIED'
   return (
     <div className="flex flex-col items-start gap-1">
-      <Badge variant={verified ? 'default' : 'secondary'}>{verified ? '✓ Verified' : 'Unverified'}</Badge>
-      <span className="text-muted-foreground text-xs">Trust {help.trustScore}/100</span>
+      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${verified ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+        {verified ? '✓ Verified' : 'Unverified'}
+      </span>
+      <span className="text-slate-400 text-xs">Trust {help.trustScore}/100</span>
     </div>
   )
 }
@@ -173,7 +174,7 @@ function VerificationButton({ help }: { help: HouseHelpRow }) {
 
   return (
     <>
-      <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setOpen(true)}>
         Verify
       </Button>
       {open && (
@@ -183,7 +184,7 @@ function VerificationButton({ help }: { help: HouseHelpRow }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setOpen(false)}
         >
-          <div className="bg-background w-full max-w-sm space-y-4 rounded-lg p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white w-full max-w-sm space-y-4 rounded-2xl p-6 shadow-lg border border-slate-100" onClick={(e) => e.stopPropagation()}>
             <p className="text-lg font-semibold">{help.name} — verification</p>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={idVerified} onChange={(e) => setIdVerified(e.target.checked)} />
@@ -192,7 +193,7 @@ function VerificationButton({ help }: { help: HouseHelpRow }) {
             <div className="space-y-1.5">
               <Label>Background check</Label>
               <Select value={backgroundCheck} onValueChange={(v) => setBackgroundCheck(v as BackgroundCheckStatus)}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl border-slate-200 bg-slate-50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -210,15 +211,16 @@ function VerificationButton({ help }: { help: HouseHelpRow }) {
                 id="incidents"
                 type="number"
                 min={0}
+                className="h-10 rounded-xl border-slate-200 bg-slate-50"
                 value={incidents}
                 onChange={(e) => setIncidents(e.target.value)}
               />
             </div>
             <div className="flex gap-2 pt-1">
-              <Button className="flex-1" disabled={save.isPending} onClick={() => save.mutate()}>
+              <Button className="flex-1 rounded-xl" disabled={save.isPending} onClick={() => save.mutate()}>
                 {save.isPending ? 'Saving…' : 'Save'}
               </Button>
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button variant="outline" className="rounded-xl" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
             </div>
@@ -230,11 +232,11 @@ function VerificationButton({ help }: { help: HouseHelpRow }) {
 }
 
 function Rating({ avg, count }: { avg: number | null; count: number }) {
-  if (count === 0) return <span className="text-muted-foreground text-sm">No ratings</span>
+  if (count === 0) return <span className="text-slate-400 text-sm">No ratings</span>
   return (
     <span className="text-sm">
       <span className="text-amber-500">★</span> {avg}{' '}
-      <span className="text-muted-foreground">({count})</span>
+      <span className="text-slate-400">({count})</span>
     </span>
   )
 }
@@ -248,7 +250,7 @@ function ReviewsButton({ helpId, name }: { helpId: string; name: string }) {
   })
   return (
     <>
-      <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setOpen(true)}>
         Reviews
       </Button>
       {open && (
@@ -259,12 +261,12 @@ function ReviewsButton({ helpId, name }: { helpId: string; name: string }) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-background max-h-[80vh] w-full max-w-md overflow-auto rounded-lg p-6 shadow-lg"
+            className="bg-white max-h-[80vh] w-full max-w-md overflow-auto rounded-2xl p-6 shadow-lg border border-slate-100"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-1 text-lg font-semibold">{name}</p>
             {reviews.data && (
-              <p className="text-muted-foreground mb-4 text-sm">
+              <p className="text-slate-400 mb-4 text-sm">
                 <span className="text-amber-500">★</span> {reviews.data.summary.average ?? '—'} · Trust{' '}
                 {reviews.data.summary.trustScore}/100 · {reviews.data.summary.count} review
                 {reviews.data.summary.count === 1 ? '' : 's'}
@@ -272,19 +274,19 @@ function ReviewsButton({ helpId, name }: { helpId: string; name: string }) {
             )}
             <div className="space-y-3">
               {reviews.data?.reviews.length === 0 && (
-                <p className="text-muted-foreground text-sm">No reviews yet.</p>
+                <p className="text-slate-400 text-sm">No reviews yet.</p>
               )}
               {reviews.data?.reviews.map((r) => (
-                <div key={r.id} className="border-border border-b pb-2 last:border-0">
+                <div key={r.id} className="border-slate-100 border-b pb-2 last:border-0">
                   <p className="text-sm">
                     <span className="text-amber-500">{'★'.repeat(r.rating)}</span>
-                    <span className="text-muted-foreground">{'★'.repeat(5 - r.rating)}</span>
+                    <span className="text-slate-300">{'★'.repeat(5 - r.rating)}</span>
                   </p>
-                  {r.comment && <p className="text-muted-foreground text-sm">{r.comment}</p>}
+                  {r.comment && <p className="text-slate-400 text-sm">{r.comment}</p>}
                 </div>
               ))}
             </div>
-            <Button className="mt-4 w-full" variant="outline" onClick={() => setOpen(false)}>
+            <Button className="mt-4 w-full rounded-xl" variant="outline" onClick={() => setOpen(false)}>
               Close
             </Button>
           </div>
@@ -321,14 +323,14 @@ function HouseHelpRow({ help, apartments }: { help: HouseHelpRow; apartments: Ap
     return (
       <TableRow>
         <TableCell>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 w-36" />
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 w-36" />
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell>
           <Select value={type} onValueChange={(v) => setType(v as HouseHelpType)}>
-            <SelectTrigger className="h-8 w-32">
+            <SelectTrigger className="h-8 w-32 rounded-xl border-slate-200 bg-slate-50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -346,10 +348,10 @@ function HouseHelpRow({ help, apartments }: { help: HouseHelpRow; apartments: Ap
         <TableCell />
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
-            <Button size="sm" disabled={save.isPending || !name.trim()} onClick={() => save.mutate()}>
+            <Button size="sm" className="rounded-xl" disabled={save.isPending || !name.trim()} onClick={() => save.mutate()}>
               {save.isPending ? '…' : 'Save'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setEditing(false)}>
               Cancel
             </Button>
           </div>
@@ -360,13 +362,15 @@ function HouseHelpRow({ help, apartments }: { help: HouseHelpRow; apartments: Ap
 
   return (
     <>
-      <TableRow className={help.isActive ? undefined : 'opacity-60'}>
+      <TableRow className={`border-b border-slate-50 transition-colors hover:bg-slate-50/60 ${help.isActive ? '' : 'opacity-60'}`}>
         <TableCell className="font-medium">{help.name}</TableCell>
-        <TableCell className="text-muted-foreground">{help.phone ?? '—'}</TableCell>
+        <TableCell className="text-slate-500">{help.phone ?? '—'}</TableCell>
         <TableCell>
-          <Badge variant="secondary">{help.type}</Badge>
+          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
+            {help.type}
+          </span>
         </TableCell>
-        <TableCell className="text-muted-foreground">
+        <TableCell className="text-slate-500">
           {help.idProofType ? `${help.idProofType}${help.idProofNumber ? ` · ${help.idProofNumber}` : ''}` : '—'}
         </TableCell>
         <TableCell>
@@ -376,21 +380,24 @@ function HouseHelpRow({ help, apartments }: { help: HouseHelpRow; apartments: Ap
           <TrustBadge help={help} />
         </TableCell>
         <TableCell>
-          <Badge variant={help.isActive ? 'default' : 'secondary'}>{help.isActive ? 'Active' : 'Inactive'}</Badge>
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${help.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+            {help.isActive ? 'Active' : 'Inactive'}
+          </span>
         </TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
             <VerificationButton help={help} />
             <ReviewsButton helpId={help.id} name={help.name} />
-            <Button size="sm" variant="ghost" onClick={() => setShowFlats((s) => !s)}>
+            <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setShowFlats((s) => !s)}>
               {showFlats ? 'Hide flats' : 'Flats'}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+            <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setEditing(true)}>
               Edit
             </Button>
             <Button
               size="sm"
               variant={help.isActive ? 'ghost' : 'default'}
+              className="rounded-xl"
               onClick={() => toggleActive.mutate()}
               disabled={toggleActive.isPending}
             >
@@ -401,8 +408,10 @@ function HouseHelpRow({ help, apartments }: { help: HouseHelpRow; apartments: Ap
       </TableRow>
       {showFlats && (
         <TableRow>
-          <TableCell colSpan={8} className="bg-muted/40">
-            <AssignmentsPanel helpId={help.id} apartments={apartments} />
+          <TableCell colSpan={8} className="p-0">
+            <div className="bg-slate-50 rounded-xl p-3 m-2">
+              <AssignmentsPanel helpId={help.id} apartments={apartments} />
+            </div>
           </TableCell>
         </TableRow>
       )}
@@ -440,28 +449,28 @@ function AssignmentsPanel({ helpId, apartments }: { helpId: string; apartments: 
 
   return (
     <div className="space-y-3 py-1">
-      <p className="text-sm font-medium">Assigned flats</p>
+      <p className="text-sm font-medium text-slate-700">Assigned flats</p>
       <div className="flex flex-wrap gap-2">
         {(assignments.data ?? []).length === 0 && (
-          <span className="text-muted-foreground text-sm">Not assigned to any flat yet.</span>
+          <span className="text-slate-400 text-sm">Not assigned to any flat yet.</span>
         )}
         {(assignments.data ?? []).map((a) => (
-          <Badge key={a.id} variant="secondary" className="gap-1.5">
+          <span key={a.id} className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
             {labelOf(a.apartmentId)}
             <button
-              className="hover:text-destructive"
+              className="hover:text-rose-500"
               onClick={() => remove.mutate(a.apartmentId)}
               disabled={remove.isPending}
               aria-label={`Remove ${labelOf(a.apartmentId)}`}
             >
               ✕
             </button>
-          </Badge>
+          </span>
         ))}
       </div>
       <div className="flex items-end gap-2">
         <Select value={apartmentId} onValueChange={setApartmentId}>
-          <SelectTrigger className="h-8 w-40">
+          <SelectTrigger className="h-8 w-40 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue placeholder="Add a flat" />
           </SelectTrigger>
           <SelectContent>
@@ -472,7 +481,7 @@ function AssignmentsPanel({ helpId, apartments }: { helpId: string; apartments: 
             ))}
           </SelectContent>
         </Select>
-        <Button size="sm" disabled={!apartmentId || add.isPending} onClick={() => add.mutate()}>
+        <Button size="sm" className="rounded-xl" disabled={!apartmentId || add.isPending} onClick={() => add.mutate()}>
           {add.isPending ? '…' : 'Assign'}
         </Button>
       </div>
@@ -492,7 +501,7 @@ function HouseHelpPage() {
         description={`${help.data?.length ?? 0} domestic worker${help.data?.length === 1 ? '' : 's'} registered`}
       />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Register house help</CardTitle>
         </CardHeader>
@@ -501,7 +510,7 @@ function HouseHelpPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>All house help</CardTitle>
         </CardHeader>
@@ -513,15 +522,15 @@ function HouseHelpPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>ID proof</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead>Trust</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Name</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Phone</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Type</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">ID proof</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Rating</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Trust</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -556,7 +565,7 @@ function AttendanceReports() {
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : '—')
 
   return (
-    <Card>
+    <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>Attendance &amp; reports</CardTitle>
       </CardHeader>
@@ -564,16 +573,17 @@ function AttendanceReports() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="att-from">From</Label>
-            <Input id="att-from" type="date" className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input id="att-from" type="date" className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50" value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="att-to">To</Label>
-            <Input id="att-to" type="date" className="w-40" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input id="att-to" type="date" className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50" value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
           {(from || to) && (
             <Button
               variant="ghost"
               size="sm"
+              className="rounded-xl"
               onClick={() => {
                 setFrom('')
                 setTo('')
@@ -585,7 +595,7 @@ function AttendanceReports() {
           <a
             href={csvHref}
             download="house-help-attendance.csv"
-            className="border-input hover:bg-accent hover:text-accent-foreground ml-auto inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium transition-colors aria-disabled:pointer-events-none aria-disabled:opacity-50"
+            className="border-slate-200 hover:bg-slate-50 ml-auto inline-flex h-9 items-center rounded-xl border px-4 text-sm font-medium transition-colors aria-disabled:pointer-events-none aria-disabled:opacity-50"
             aria-disabled={rows.length === 0}
           >
             Download CSV
@@ -594,23 +604,25 @@ function AttendanceReports() {
 
         <QueryState q={entries} empty={entries.isSuccess && rows.length === 0} emptyText="No attendance in this range.">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Hours per help</p>
+            <p className="text-sm font-medium text-slate-700">Hours per help</p>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Visits</TableHead>
-                  <TableHead className="text-right">Hours</TableHead>
-                  <TableHead className="text-right">Inside</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Name</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Type</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Visits</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Hours</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Inside</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {summary.map((s) => (
-                  <TableRow key={s.houseHelpId}>
+                  <TableRow key={s.houseHelpId} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                     <TableCell className="font-medium">{s.helpName}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{s.type}</Badge>
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
+                        {s.type}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">{s.visits}</TableCell>
                     <TableCell className="text-right">{formatWorkedMinutes(s.totalMinutes)}</TableCell>
@@ -622,24 +634,24 @@ function AttendanceReports() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Entry log</p>
+            <p className="text-sm font-medium text-slate-700">Entry log</p>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Flat</TableHead>
-                  <TableHead>Check-in</TableHead>
-                  <TableHead>Check-out</TableHead>
-                  <TableHead className="text-right">Duration</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Name</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Flat</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Check-in</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Check-out</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Duration</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                     <TableCell className="font-medium">{r.helpName}</TableCell>
-                    <TableCell className="text-muted-foreground">{r.apartment ?? '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{fmt(r.checkInAt)}</TableCell>
-                    <TableCell className="text-muted-foreground">{fmt(r.checkOutAt)}</TableCell>
+                    <TableCell className="text-slate-500">{r.apartment ?? '—'}</TableCell>
+                    <TableCell className="text-slate-500">{fmt(r.checkInAt)}</TableCell>
+                    <TableCell className="text-slate-500">{fmt(r.checkOutAt)}</TableCell>
                     <TableCell className="text-right">
                       {formatWorkedMinutes(houseHelpWorkedMinutes(r.checkInAt, r.checkOutAt))}
                     </TableCell>
