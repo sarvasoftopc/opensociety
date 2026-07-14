@@ -1,0 +1,38 @@
+services:
+  - name: sarvasociety-api
+    type: web
+    runtime: python
+    plan: starter
+    region: singapore
+    rootDir: apps/api-fastapi
+    buildCommand: pip install .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: "10000"
+      - key: DEFAULT_TENANT_SLUG
+        value: demo-society
+      - key: UPLOADS_DIR
+        value: .uploads
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: PUBLIC_APP_URL
+        sync: false

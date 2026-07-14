@@ -1,0 +1,77 @@
+# TASK-002 Transcript
+
+## 2026-07-14 21:20:00 IST
+
+- Task ID: `TASK-002`
+- User request summary: Create a new PR because the earlier PR was merged and the merged branch still contains tracked env example files with sensitive values. Also add Netlify and Render deployment setup.
+- Assistant action summary: Confirmed the old task branch had already been merged into `main`, verified that merged `main` still tracked `.env.example` files and still contained live Supabase values in `apps/api-fastapi/.env.example`, created a fresh isolated worktree and branch for the cleanup task, and prepared a focused fix plan covering secret cleanup, deployment configuration, and documentation.
+- Sub-task being handled: Task setup, merged-state verification, and cleanup/deployment scoping.
+- Files inspected:
+  - `ai/TASK.md`
+  - `ai/TASK_INDEX.md`
+  - `ai/chat/INDEX.md`
+  - `.gitignore`
+  - `apps/api-fastapi/.env.example`
+  - `README.md`
+  - `package.json`
+  - `apps/web/package.json`
+  - `apps/web/vite.config.ts`
+  - `apps/api-fastapi/app/core/config.py`
+- Files modified:
+  - `ai/TASK.md`
+  - `ai/TASK_INDEX.md`
+  - `ai/chat/INDEX.md`
+  - `ai/chat/TASK-002-secret-cleanup-and-deployment.md`
+  - `.gitignore`
+  - `.env.example`
+  - `apps/api-fastapi/.env.example`
+  - `apps/mobile/.env.example`
+  - `apps/web/.env.example`
+- Decision made: Treat this as a separate post-merge remediation task on a fresh branch instead of continuing on the merged backend branch. Remove tracked env example files from the repo entirely, keep Firebase mobile client files tracked, and move all deployment configuration to platform environment variables plus explicit Netlify/Render config files.
+- Validation performed:
+  - `git branch --show-current`
+  - `git fetch fork main`
+  - `git worktree add .worktrees/TASK-002-cleanup -b fix/TASK-002-deployment-secret-cleanup fork/main`
+  - `git ls-tree -r --name-only HEAD | rg '(^|/)\\.env'`
+  - `git grep -nE '<sensitive-patterns>' HEAD -- .`
+- Blockers:
+  - Local worktree installs require approval of skipped pnpm build scripts before full web build validation can run through the normal package script path.
+- Pending items:
+  - Add Netlify deployment config for the TanStack Start web app.
+  - Add Render blueprint for the FastAPI backend.
+  - Update README with no-env-in-repo and deployment instructions.
+
+## 2026-07-14 20:15:00 IST
+
+- Task ID: `TASK-002`
+- User request summary: Finish the cleanup PR with secret removal plus Netlify and Render setup.
+- Assistant action summary: Removed the tracked env example files from the repo, hardened `.gitignore` to block future env and local Netlify artifacts, added the Netlify TanStack Start Vite plugin, created `netlify.toml` and `render.yaml`, updated the README with platform env requirements, fixed the Netlify build command to build `@opensociety/shared` before `@opensociety/web`, and validated that the web app now builds successfully for Netlify.
+- Sub-task being handled: Repo cleanup, deployment config, and validation.
+- Files inspected:
+  - `packages/shared/package.json`
+  - `turbo.json`
+  - `apps/web/package.json`
+  - `apps/web/vite.config.ts`
+  - `README.md`
+- Files modified:
+  - `.gitignore`
+  - `README.md`
+  - `apps/web/package.json`
+  - `apps/web/vite.config.ts`
+  - `netlify.toml`
+  - `render.yaml`
+  - `pnpm-lock.yaml`
+  - `ai/TASK.md`
+  - `ai/chat/TASK-002-secret-cleanup-and-deployment.md`
+- Decision made: Do not keep any repo-tracked env examples. Keep only the mobile Firebase client files tracked, because native Expo builds require them. For deployment, make Netlify own the web build-time envs and Render own the backend runtime secrets.
+- Validation performed:
+  - `pnpm install --ignore-scripts`
+  - `pnpm --filter @opensociety/shared build && pnpm --filter @opensociety/web build`
+  - `git ls-files | rg '(^|/)\\.env'`
+  - `git grep --cached -nE '<sensitive-patterns>' -- .`
+  - `git diff --cached --name-status`
+- Blockers:
+  - Backend pytest was not re-run in this worktree because the local FastAPI venv is not present here; this task only changed deployment/configuration files and removed tracked env examples.
+- Pending items:
+  - Commit and push the cleanup branch.
+  - Provide PR title/description for the new follow-up PR.
