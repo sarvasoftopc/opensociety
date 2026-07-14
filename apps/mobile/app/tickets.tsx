@@ -5,6 +5,7 @@ import type { TicketCategory, TicketPriority, TicketStatus } from '@opensociety/
 import { ticketCategorySchema, ticketPrioritySchema } from '@opensociety/shared'
 import { apiClient } from '../api/client'
 import { Button } from '../components/Button'
+import { HeroCard, MobileScreen, SectionCard, mobileTheme } from '../components/mobile-ui'
 
 const STATUS_COLOR: Record<TicketStatus, string> = {
   OPEN: '#0e7490',
@@ -50,84 +51,99 @@ export default function Tickets() {
   const rows = tickets.data ?? []
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.section}>Raise a ticket</Text>
+    <MobileScreen scroll contentStyle={styles.container}>
+      <HeroCard
+        eyebrow="Resident"
+        title="Maintenance requests"
+        subtitle="Raise issues, choose the flat, and track every ticket without leaving the app."
+        badge={`${rows.length} tickets`}
+      />
 
-      <Field label="Title">
-        <TextInput style={styles.input} placeholder="e.g. Leaking tap" value={title} onChangeText={setTitle} />
-      </Field>
-      <Field label="Description">
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          placeholder="What needs fixing?"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-      </Field>
-      <Field label="Apartment">
-        {apartments.isLoading ? (
-          <ActivityIndicator />
-        ) : apartments.isError ? (
-          <Text style={styles.error}>Could not load apartments</Text>
-        ) : (
-          <View style={styles.chips}>
-            {(apartments.data ?? []).map((a) => (
-              <Chip
-                key={a.id}
-                label={`${a.tower}-${a.apartmentNo}`}
-                selected={apartmentId === a.id}
-                onPress={() => setApartmentId(a.id)}
-              />
+      <SectionCard title="Raise a ticket" subtitle="The backend contract remains unchanged, so submissions still hit the same workflow.">
+        <Field label="Title">
+          <TextInput
+            style={mobileTheme.input}
+            placeholder="e.g. Leaking tap"
+            placeholderTextColor="#7a8aa3"
+            value={title}
+            onChangeText={setTitle}
+          />
+        </Field>
+        <Field label="Description">
+          <TextInput
+            style={[mobileTheme.input, mobileTheme.multiline]}
+            placeholder="What needs fixing?"
+            placeholderTextColor="#7a8aa3"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+        </Field>
+        <Field label="Apartment">
+          {apartments.isLoading ? (
+            <ActivityIndicator />
+          ) : apartments.isError ? (
+            <Text style={styles.error}>Could not load apartments</Text>
+          ) : (
+            <View style={mobileTheme.chipRow}>
+              {(apartments.data ?? []).map((a) => (
+                <Chip
+                  key={a.id}
+                  label={`${a.tower}-${a.apartmentNo}`}
+                  selected={apartmentId === a.id}
+                  onPress={() => setApartmentId(a.id)}
+                />
+              ))}
+            </View>
+          )}
+        </Field>
+        <Field label="Category">
+          <View style={mobileTheme.chipRow}>
+            {ticketCategorySchema.options.map((c) => (
+              <Chip key={c} label={c} selected={category === c} onPress={() => setCategory(c)} />
             ))}
           </View>
-        )}
-      </Field>
-      <Field label="Category">
-        <View style={styles.chips}>
-          {ticketCategorySchema.options.map((c) => (
-            <Chip key={c} label={c} selected={category === c} onPress={() => setCategory(c)} />
-          ))}
-        </View>
-      </Field>
-      <Field label="Priority">
-        <View style={styles.chips}>
-          {ticketPrioritySchema.options.map((p) => (
-            <Chip key={p} label={p} selected={priority === p} onPress={() => setPriority(p)} />
-          ))}
-        </View>
-      </Field>
-      <View style={styles.submit}>
-        <Button
-          label={create.isPending ? 'Submitting…' : 'Submit ticket'}
-          onPress={() => create.mutate()}
-          disabled={!canSubmit}
-        />
-        {create.isError && (
-          <Text style={styles.error}>{String((create.error as Error)?.message ?? 'Failed')}</Text>
-        )}
-      </View>
-
-      <Text style={[styles.section, styles.listHeading]}>Your tickets</Text>
-      {tickets.isLoading ? (
-        <ActivityIndicator />
-      ) : rows.length === 0 ? (
-        <Text style={styles.dim}>No tickets yet.</Text>
-      ) : (
-        rows.map((t) => (
-          <View key={t.id} style={styles.ticket}>
-            <View style={styles.ticketHead}>
-              <Text style={styles.ticketTitle}>{t.title}</Text>
-              <Text style={[styles.status, { color: STATUS_COLOR[t.status] }]}>{t.status}</Text>
-            </View>
-            <Text style={styles.dim}>{t.description}</Text>
-            <Text style={styles.meta}>
-              {t.category} · {t.priority}
-            </Text>
+        </Field>
+        <Field label="Priority">
+          <View style={mobileTheme.chipRow}>
+            {ticketPrioritySchema.options.map((p) => (
+              <Chip key={p} label={p} selected={priority === p} onPress={() => setPriority(p)} />
+            ))}
           </View>
-        ))
-      )}
-    </ScrollView>
+        </Field>
+        <View style={styles.submit}>
+          <Button
+            label={create.isPending ? 'Submitting…' : 'Submit ticket'}
+            onPress={() => create.mutate()}
+            disabled={!canSubmit}
+          />
+          {create.isError && (
+            <Text style={styles.error}>{String((create.error as Error)?.message ?? 'Failed')}</Text>
+          )}
+        </View>
+      </SectionCard>
+
+      <SectionCard title="Your tickets">
+        {tickets.isLoading ? (
+          <ActivityIndicator />
+        ) : rows.length === 0 ? (
+          <Text style={styles.dim}>No tickets yet.</Text>
+        ) : (
+          rows.map((t) => (
+            <View key={t.id} style={styles.ticket}>
+              <View style={styles.ticketHead}>
+                <Text style={styles.ticketTitle}>{t.title}</Text>
+                <Text style={[styles.status, { color: STATUS_COLOR[t.status] }]}>{t.status}</Text>
+              </View>
+              <Text style={styles.dim}>{t.description}</Text>
+              <Text style={styles.meta}>
+                {t.category} · {t.priority}
+              </Text>
+            </View>
+          ))
+        )}
+      </SectionCard>
+    </MobileScreen>
   )
 }
 
@@ -142,38 +158,22 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+    <Pressable onPress={onPress} style={[mobileTheme.chip, selected && mobileTheme.chipActive]}>
+      <Text style={[mobileTheme.chipText, selected && mobileTheme.chipTextActive]}>{label}</Text>
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 14 },
-  section: { fontSize: 17, fontWeight: '700', color: '#18181b' },
-  listHeading: { marginTop: 12 },
+  container: { gap: 16, paddingBottom: 40 },
   field: { gap: 6 },
-  label: { fontSize: 13, fontWeight: '600', color: '#3f3f46' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d4d4d8',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-  },
-  multiline: { minHeight: 64, textAlignVertical: 'top' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: '#d4d4d8' },
-  chipSelected: { backgroundColor: '#0e7490', borderColor: '#0e7490' },
-  chipText: { color: '#3f3f46', fontSize: 13, fontWeight: '500' },
-  chipTextSelected: { color: '#fff' },
+  label: { fontSize: 13, fontWeight: '700', color: '#35507a' },
   submit: { gap: 8, marginTop: 4 },
-  error: { color: '#e11d48', fontSize: 13 },
-  dim: { color: '#71717a', fontSize: 13 },
-  ticket: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 10, padding: 12, gap: 4, backgroundColor: '#fff' },
+  error: { color: '#d92d20', fontSize: 13, fontWeight: '700' },
+  dim: { color: '#697a94', fontSize: 13, lineHeight: 19 },
+  ticket: { borderWidth: 1, borderColor: '#dce8f7', borderRadius: 22, padding: 14, gap: 6, backgroundColor: '#f8fbff' },
   ticketHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  ticketTitle: { fontSize: 15, fontWeight: '600', color: '#18181b', flexShrink: 1 },
-  status: { fontSize: 12, fontWeight: '700' },
-  meta: { fontSize: 12, color: '#a1a1aa', marginTop: 2 },
+  ticketTitle: { fontSize: 16, fontWeight: '800', color: '#11203a', flexShrink: 1 },
+  status: { fontSize: 12, fontWeight: '800' },
+  meta: { fontSize: 12, color: '#72839c', marginTop: 2, fontWeight: '600' },
 })

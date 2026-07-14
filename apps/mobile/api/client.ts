@@ -1,5 +1,7 @@
 import type {
   Apartment,
+  UserRole,
+  UserStatus,
   CheckInHouseHelp,
   CreatePreApproval,
   CreateTicket,
@@ -23,7 +25,27 @@ import type {
   VisitorStatus,
 } from '@opensociety/shared'
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8787'
+function isLocalLikeHost(hostname: string) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname.startsWith('192.168.')
+}
+
+function resolveApiUrl() {
+  const configured = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8788'
+  if (typeof window === 'undefined') return configured
+
+  try {
+    const apiUrl = new URL(configured)
+    const pageUrl = new URL(window.location.origin)
+    if (isLocalLikeHost(apiUrl.hostname) && isLocalLikeHost(pageUrl.hostname) && apiUrl.hostname !== pageUrl.hostname) {
+      apiUrl.hostname = pageUrl.hostname
+    }
+    return apiUrl.toString().replace(/\/$/, '')
+  } catch {
+    return configured
+  }
+}
+
+export const API_URL = resolveApiUrl()
 
 // House help as returned by the directory list — carries its anonymous rating
 // summary plus verification/trust signals.
@@ -34,7 +56,33 @@ export type HouseHelpWithRating = HouseHelp & {
   verificationLevel: 'VERIFIED' | 'UNVERIFIED'
 }
 
-// Dev auth stand-in used only when no Clerk session is present. Set
+export type AuthMeResponse = {
+  id: string
+  tenantId: string
+  tenantSlug: string
+  name: string
+  email: string | null
+  phone: string | null
+  role: UserRole
+  status: UserStatus
+  isActive: boolean
+  authSource: string
+}
+
+export type AppNotification = {
+  id: string
+  userId: string
+  type: string
+  title: string
+  body: string
+  data: Record<string, string> | null
+  source: string | null
+  deliveryStatus: string
+  readAt: string | null
+  createdAt: string
+}
+
+// Dev auth stand-in used only when no Supabase session is present. Set
 // EXPO_PUBLIC_DEV_USER_ID to a real users.id (resident/admin) to act as them;
 // it's sent as the x-user-id header.
 const DEV_USER_ID = process.env.EXPO_PUBLIC_DEV_USER_ID
@@ -58,8 +106,8 @@ function deviceHeaders(): Record<string, string> {
   return { 'x-device-id': id, 'x-device-model': ua?.slice(0, 80) ?? 'Mobile device' }
 }
 
-// Bridge to the Clerk session token, registered by a React component (see
-// AuthBridge in _layout). When signed in, requests carry a Bearer JWT the API
+// Bridge to the Supabase session token, registered by a React component in the
+// root layout. When signed in, requests carry a Bearer JWT the API
 // verifies, taking precedence over the dev header.
 let tokenGetter: (() => Promise<string | null>) | null = null
 export function setAuthTokenGetter(fn: (() => Promise<string | null>) | null) {
@@ -87,8 +135,30 @@ async function api<T>(path: string, init?: RequestInit, userId = DEV_USER_ID): P
   return (await res.json()) as T
 }
 
+async function uploadBinary(blob: Blob, contentType: string, userId = DEV_USER_ID): Promise<{ key: string; url: string }> {
+  const token = tokenGetter ? await tokenGetter().catch(() => null) : null
+  const auth: Record<string, string> = token
+    ? { authorization: `Bearer ${token}` }
+    : userId
+      ? { 'x-user-id': userId }
+      : {}
+  const res = await fetch(`${API_URL}/uploads`, {
+    method: 'POST',
+    body: blob,
+    headers: {
+      'content-type': contentType,
+      ...auth,
+    },
+  })
+  if (!res.ok) throw new Error(`API /uploads -> ${res.status}`)
+  return (await res.json()) as { key: string; url: string }
+}
+
 export const apiClient = {
   health: () => api<{ status: string }>('/health'),
+  me: () => api<AuthMeResponse>('/auth/me'),
+  updateMe: (body: { name?: string; phone?: string }, userId?: string) =>
+    api<AuthMeResponse>('/auth/me', { method: 'PATCH', body: JSON.stringify(body) }, userId),
   getSociety: () => api<SocietyConfig | null>('/society'),
   listApartments: () => api<Apartment[]>('/apartments'),
   listVisitors: (status?: VisitorStatus) =>
@@ -108,8 +178,15 @@ export const apiClient = {
   redeemPreApproval: (code: string, userId?: string) =>
     api<VisitorEntry>('/visitors/pre-approvals/redeem', { method: 'POST', body: JSON.stringify({ code }) }, userId),
   listNotices: () => api<Notice[]>('/notices'),
+  listNotifications: () => api<AppNotification[]>('/notifications'),
+  markNotificationRead: (id: string, userId?: string) =>
+    api<AppNotification>(`/notifications/${id}/read`, { method: 'POST' }, userId),
+  registerDeviceToken: (body: { token: string; platform: string; provider?: string; deviceLabel?: string }, userId?: string) =>
+    api<{ ok: boolean }>('/notifications/register-device', { method: 'POST', body: JSON.stringify(body) }, userId),
   listBills: () => api<MaintenanceBill[]>('/bills'),
   listPayments: () => api<Payment[]>('/payments'),
+  recordPayment: (body: { billId: string; amount: number; method: string; reference?: string; notes?: string }, userId?: string) =>
+    api<Payment>('/payments', { method: 'POST', body: JSON.stringify(body) }, userId),
   listTickets: (status?: string) => api<Ticket[]>(`/tickets${status ? `?status=${status}` : ''}`),
   createTicket: (body: CreateTicket, userId?: string) =>
     api<Ticket>('/tickets', { method: 'POST', body: JSON.stringify(body) }, userId),
@@ -140,7 +217,11 @@ export const apiClient = {
     api<Vehicle>(`/vehicles/${id}`, { method: 'PUT', body: JSON.stringify(body) }, userId),
   listGuards: () => api<Guard[]>('/guards'),
   listActiveDuty: () => api<GuardDutySession[]>('/guards/duty/active'),
-  clockInGuard: (guardId: string, coords?: { lat?: number; lng?: number }, userId?: string) =>
+  clockInGuard: (
+    guardId: string,
+    coords?: { lat?: number; lng?: number; checkpoint?: string; clockInPhotoUrl?: string },
+    userId?: string,
+  ) =>
     api<GuardDutySession>(
       `/guards/${guardId}/duty/clock-in`,
       { method: 'POST', body: JSON.stringify(coords ?? {}), headers: deviceHeaders() },
@@ -156,6 +237,12 @@ export const apiClient = {
     api<HouseHelpAssignment>(`/house-help/${id}/assignments/${apartmentId}`, { method: 'DELETE' }, userId),
   markNoticeRead: (id: string, userId?: string) =>
     api<{ ok: boolean }>(`/notices/${id}/read`, { method: 'POST', body: JSON.stringify({}) }, userId),
+  uploadImage: async (uri: string) => {
+    const response = await fetch(uri)
+    const blob = await response.blob()
+    const contentType = blob.type || 'image/jpeg'
+    return uploadBinary(blob, contentType)
+  },
   // Auth-fetch a stored R2 object (GET /uploads/:key is auth-gated) and return a
   // local object URL suitable for opening/displaying an attachment.
   fetchUploadObjectUrl: async (path: string, userId = DEV_USER_ID): Promise<string> => {

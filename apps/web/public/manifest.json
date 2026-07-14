@@ -1,6 +1,6 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "Sarva",
+  "name": "SarvaSociety",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +18,11 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "id": "/",
+  "start_url": "/resident",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#0f1b31",
+  "background_color": "#eef4fb",
+  "scope": "/",
+  "orientation": "portrait"
 }

@@ -1,91 +1,224 @@
-### opensociety
+### SarvaSociety
 
-**opensociety** is a privacy-first, open-source society management platform — an alternative to MyGate and NoBrokerHood for gated communities. The code is open and your data is portable: you own your deployment.
+SarvaSociety is a society-management platform for gated communities with:
 
-## Tech Stack
+- one shared FastAPI backend
+- one shared Supabase Postgres database
+- Supabase Auth for web/mobile sign-in
+- role-based experiences for admin, resident, and guard
+- resident and guard flows designed to feel like a mobile app even when opened as a PWA
 
-**Frontend:**
-- Web: [TanStack Start](https://tanstack.com/start) (React) + TanStack Query
-- Mobile: [Expo](https://expo.dev) Router (React Native, SDK 54) + TanStack Query
+This repo started as a single-tenant OpenSociety codebase and is being migrated into a multi-tenant SaaS architecture.
 
-**Backend:**
-- API: [Hono](https://hono.dev) on [Cloudflare Workers](https://workers.cloudflare.com)
-- Database: [Neon Postgres](https://neon.tech) via [Drizzle ORM](https://orm.drizzle.team) (neon-http driver)
-- Shared contracts: Zod (`@opensociety/shared`)
+## Current Architecture
 
-**Authentication:**
-- [Clerk](https://clerk.com) (web + mobile), authn-only with a local user mirror. Resident OTP uses Clerk's built-in phone OTP — no separate SMS provider for auth.
+### Backend
 
-**Storage & Services:**
-- Photos/documents: Cloudflare R2
-- Push notifications: Expo Push
+- Runtime: `apps/api-fastapi`
+- Framework: FastAPI
+- Auth: Supabase Auth JWT verification
+- Database: Supabase Postgres
+- Tenancy model: shared database with tenant-aware rows
+- Notifications: Firebase Cloud Messaging for PWA/web push
 
-## Architecture
+### Frontend
 
-- **Single-tenant per society:** each society runs its own API + database instance (no `society_id`; a single `society_config` row). Complete data isolation.
-- **Shared mobile app:** one app across all societies (App Store + Play Store).
+- Deployable web app: `apps/web`
+- Mobile/native app work: `apps/mobile`
+- Single HTTPS web entry point:
+  - sign in once
+  - route by role
+  - admin opens the console-style dashboard
+  - resident opens the MyGate-style resident app
+  - guard opens the MyGate-style guard app
 
-See `BLOCKING_DECISIONS.md` (in the Obsidian notes) for the rationale behind tenancy, host, auth, and MVP-scope decisions.
+### Roles
 
-## Monorepo
+- `ADMIN`
+  - society setup
+  - apartments
+  - residents
+  - guards
+  - notices
+  - visitors
+  - billing
+  - reports
+  - notification testing
+- `RESIDENT`
+  - notice board
+  - daily help visibility
+  - homes and vehicles
+  - payments
+  - maintenance tickets
+  - visitor-related alerts
+- `GUARD`
+  - gate queue
+  - walk-in registration
+  - attendance / duty support
+  - house-help movement visibility
 
-```
+## Apps In This Repo
+
+```text
 apps/
-  api      Hono API on Cloudflare Workers (wrangler)
-  web      TanStack Start admin dashboard
-  mobile   Expo Router app (residents + guards)
+  api                legacy Hono/Workers backend kept during migration
+  api-fastapi        current FastAPI + Supabase migration backend
+  web                deployable single-URL role-based app
+  mobile             Expo-based native/mobile app work
 packages/
-  db       Drizzle schema + migrations (Neon)
-  shared   Zod contracts shared across api/web/mobile
-  typescript-config  shared tsconfig bases
+  db                 older schema/migration package from the legacy stack
+  shared             shared contracts/types
+scripts/             ordered SQL + seed/bootstrap helpers
 ```
 
-## Quickstart
+## SQL And Bootstrap
 
-```
+Important scripts:
+
+- `scripts/998_bootstrap_supabase_schema.sql`
+  - creates the current shared Supabase schema from scratch
+- `scripts/999_all_in_one_supabase_migration.sql`
+  - combined migration path
+- `scripts/050_seed_demo_supabase.py`
+  - seeds demo tenant, users, auth-linked records, and sample operational data
+
+For a blank Supabase project, start with:
+
+1. Run `scripts/998_bootstrap_supabase_schema.sql`
+2. Run the demo seed flow if you want local testing data
+
+## Local Development
+
+### 1. Install dependencies
+
+```bash
 pnpm install
-pnpm check-types                              # type-check all packages
-pnpm --filter @opensociety/db db:generate    # generate a migration from the schema
-pnpm --filter @opensociety/api dev           # wrangler dev (needs apps/api/.dev.vars)
-pnpm --filter @opensociety/web dev           # http://localhost:3000
 ```
 
-Then open the admin dashboard at **http://localhost:3000/admin**.
+### 2. Configure env files
 
-### Environment
+Create/fill:
 
-Copy the example env files and fill in real values (all are gitignored):
+- `apps/api-fastapi/.env`
+- `apps/web/.env`
+- optionally `apps/mobile/.env`
 
+Key backend env values:
+
+```bash
+API_HOST=0.0.0.0
+API_PORT=8788
+DEFAULT_TENANT_SLUG=demo-society
+
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_JWT_SECRET=...
+DATABASE_URL=...
+
+FIREBASE_PROJECT_ID=...
+FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json
+PUBLIC_APP_URL=...
 ```
-cp apps/api/.dev.vars.example apps/api/.dev.vars   # DATABASE_URL, CLERK_* (API)
-cp apps/web/.env.example apps/web/.env             # VITE_API_URL, VITE_DEV_USER_ID (web)
+
+Key web env values:
+
+```bash
+VITE_API_URL=/api
+VITE_API_PROXY_TARGET=http://127.0.0.1:8788
+VITE_ALLOWED_HOSTS=localhost,127.0.0.1,...
+
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_MEASUREMENT_ID=...
+VITE_FIREBASE_VAPID_KEY=...
 ```
 
-Per-society secrets (`DATABASE_URL`, `CLERK_*`, R2) go in `apps/api/.dev.vars` for local dev and `wrangler secret put` for production. See `.env.example` for the full list.
+### 3. Start backend
 
-Until Clerk sessions are wired into the web app, set `VITE_DEV_USER_ID` to a real `users.id` so authored writes (publishing notices, approving visitors) attribute correctly.
+```bash
+cd apps/api-fastapi
+.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8788
+```
 
-## Admin dashboard
+### 4. Start web app
 
-The web app (`apps/web`) is a shadcn/ui dashboard with light + dark mode at `/admin`:
+```bash
+cd apps/web
+node node_modules/vite/bin/vite.js dev --port 3000 --host 0.0.0.0
+```
 
-- **Overview** — at-a-glance counts and a setup checklist
-- **Society** — society configuration
-- **Apartments** — add units individually or via bulk CSV import
-- **Residents** — approve sign-ups (assign apartment + relation) and manage roles
-- **Guards** — register gate staff, activate/deactivate
-- **Visitors** — visitor logs with status filters, approve/deny
-- **Notices** — publish announcements with priority and expiry
+### 5. Optional HTTPS phone testing
 
-## CI
+Expose the web app through ngrok:
 
-GitHub Actions runs build + type-check on every push and PR to `main` (`.github/workflows/ci.yml`).
+```bash
+ngrok http 3000
+```
 
-## Documentation
+The web app uses same-origin `/api` calls and proxies them to FastAPI in local dev, so the single HTTPS URL can be used for admin, resident, and guard testing.
 
-- **Roadmap:** tracked in Lucidity (M0–M4 milestones)
-- **Database schema:** `packages/db/schema.dbml` + generated migrations in `packages/db/drizzle/`
+## Test Accounts
 
----
+Seeded demo accounts:
 
-Built with ❤️ for transparency, privacy, and community ownership.
+- Admin: `admin@demo.local` / `DemoAdmin123!`
+- Resident: `resident@demo.local` / `Resident123!`
+- Guard: `guard@demo.local` / `Guard123!`
+
+## Notification Testing
+
+Resident-side:
+
+1. Open the single HTTPS URL on Android Chrome
+2. Install the PWA
+3. Sign in as a resident
+4. Allow notifications
+
+Admin-side:
+
+1. Sign in as admin on the same web app
+2. Use the notification tool in admin overview
+3. Choose either:
+   - one searched resident
+   - all residents
+4. Send a test notification
+
+Notes:
+
+- the system stores in-app notifications and also attempts push delivery
+- `partial_failure` means some saved tokens succeeded and some stale tokens failed
+- stale failed device tokens are now deactivated automatically by the backend
+
+## Validation
+
+Useful checks:
+
+```bash
+cd apps/api-fastapi
+.venv/bin/pytest -q tests/test_app_contracts.py
+
+cd apps/web
+node node_modules/typescript/bin/tsc --noEmit
+```
+
+## Current Direction
+
+The goal of this repo is no longer “one deployment per society”.
+
+The target product direction is:
+
+- one backend
+- one database
+- tenant-aware tables
+- shared infrastructure
+- one deployment serving many societies
+
+That is the architecture currently being implemented in `apps/api-fastapi` and the role-based single-URL web experience.

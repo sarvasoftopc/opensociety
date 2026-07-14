@@ -1,67 +1,111 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Zap, Server, Route as RouteIcon, Shield, Waves, Sparkles } from 'lucide-react'
+import { ArrowRight, ShieldCheck, UserRound, Users } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThemeToggle } from '@/components/theme-toggle'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({ component: HomeRoute })
 
-const features = [
-  { icon: Zap, title: 'Visitor management', description: 'Real-time entry requests with resident approve/deny and full entry/exit logging.' },
-  { icon: Shield, title: 'Guard check-in', description: 'Gate workflow for check-in/out, pre-approval codes, and a tamper-evident audit trail.' },
-  { icon: RouteIcon, title: 'Pre-approvals', description: 'Residents generate shareable codes; guards redeem them for instant, friction-free entry.' },
-  { icon: Server, title: 'Single-tenant', description: 'Each society runs its own isolated database — complete data ownership, no lock-in.' },
-  { icon: Waves, title: 'Notice board', description: 'Society-wide announcements with priority and push notifications.' },
-  { icon: Sparkles, title: 'Open source', description: 'TanStack Start, Hono on Cloudflare Workers, Drizzle + Neon. Your code, your data.' },
-]
+const surfaces = [
+  {
+    title: 'Resident app',
+    body: 'Visitors, notices, maintenance, payments, vehicles, and staff approvals in one mobile-style flow.',
+    to: '/app',
+    icon: UserRound,
+  },
+  {
+    title: 'Guard app',
+    body: 'Gate queue, walk-in registration, approvals, and duty workflows for security staff.',
+    to: '/guard',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Admin console',
+    body: 'Society setup, residents, guards, notices, billing, and operational reporting.',
+    to: '/admin',
+    icon: Users,
+  },
+] as const
 
-function App() {
+function HomeRoute() {
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <span className="text-lg font-bold tracking-tight">OpenSociety</span>
-        <ThemeToggle />
-      </header>
-
-      <section className="px-6 py-16 text-center">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-5xl font-black tracking-tight md:text-6xl">
-            Open<span className="text-cyan-500 dark:text-cyan-400">Society</span>
-          </h1>
-          <p className="text-muted-foreground mt-4 text-xl">Privacy-first society management platform</p>
-          <p className="text-muted-foreground mx-auto mt-3 max-w-2xl">
-            An open-source alternative to MyGate and NoBrokerHood for gated communities. You own your data and
-            your deployment.
-          </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/admin">Open Admin Dashboard</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <a href="https://tanstack.com/start" target="_blank" rel="noopener noreferrer">
-                Documentation
-              </a>
-            </Button>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.16),_transparent_24%),linear-gradient(180deg,#08111f_0%,#eef4fb_22%,#eef4fb_100%)] px-4 py-6 text-foreground">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+        <header className="flex items-center justify-between rounded-[28px] border border-white/10 bg-slate-950 px-5 py-4 text-white shadow-2xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400 text-sm font-black text-slate-950">
+              SS
+            </div>
+            <div>
+              <p className="text-lg font-black tracking-tight">SarvaSociety</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-300">Choose your app</p>
+            </div>
           </div>
-        </div>
-      </section>
+          <ThemeToggle />
+        </header>
 
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <Card key={f.title}>
-              <CardHeader>
-                <f.icon className="size-8 text-cyan-500 dark:text-cyan-400" />
-                <CardTitle className="mt-2">{f.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{f.description}</p>
-              </CardContent>
-            </Card>
+        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <Card className="rounded-[32px] border-white/10 bg-slate-950 text-white shadow-2xl">
+            <CardHeader className="p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-200">Live local preview</p>
+              <CardTitle className="mt-3 text-4xl font-black leading-tight">Open the right surface and start testing the real flows.</CardTitle>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
+                Sign in with the seeded Supabase users and move directly into resident, guard, or admin operations without a mixed menu.
+              </p>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3 px-8 pb-8 pt-0">
+              <Button asChild className="h-12 rounded-2xl bg-cyan-400 px-6 text-slate-950 hover:bg-cyan-300">
+                <Link to="/sign-in">Sign in</Link>
+              </Button>
+              <Button asChild className="h-12 rounded-2xl px-6" variant="outline">
+                <Link to="/app">Open mobile hub</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[32px] border-slate-200/80 bg-white/94 shadow-xl">
+            <CardHeader className="p-8 pb-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">Demo accounts</p>
+            </CardHeader>
+            <CardContent className="grid gap-3 px-8 pb-8 pt-0">
+              <DemoRow label="Resident" email="resident@demo.local" password="Resident123!" />
+              <DemoRow label="Guard" email="guard@demo.local" password="Guard123!" />
+              <DemoRow label="Admin" email="admin@demo.local" password="DemoAdmin123!" />
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          {surfaces.map(({ title, body, to, icon: Icon }) => (
+            <Link
+              key={title}
+              className="group rounded-[30px] border border-slate-200/80 bg-white/92 p-6 shadow-lg transition-transform hover:-translate-y-0.5"
+              to={to}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700">
+                <Icon className="size-6" />
+              </div>
+              <h2 className="mt-5 text-2xl font-black text-slate-950">{title}</h2>
+              <p className="mt-3 text-sm leading-6 text-slate-500">{body}</p>
+              <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-cyan-700">
+                Open
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
           ))}
-        </div>
-      </section>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+function DemoRow({ label, email, password }: { label: string; email: string; password: string }) {
+  return (
+    <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+      <p className="text-sm font-black text-slate-950">{label}</p>
+      <p className="mt-2 text-sm font-medium text-slate-600">{email}</p>
+      <p className="text-sm font-medium text-slate-600">{password}</p>
     </div>
   )
 }

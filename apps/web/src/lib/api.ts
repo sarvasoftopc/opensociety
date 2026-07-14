@@ -149,13 +149,71 @@ export type VehicleGateLogRow = {
   registered: boolean
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8787'
-// Dev stand-in for the acting user, used only when no Clerk session is present.
+export type AuthMeResponse = {
+  id: string
+  tenantId: string
+  tenantSlug: string
+  name: string
+  email: string | null
+  phone: string | null
+  role: UserRole
+  status: UserStatus
+  isActive: boolean
+  authSource: string
+}
+
+export type AppNotification = {
+  id: string
+  userId: string
+  type: string
+  title: string
+  body: string
+  data: Record<string, string> | null
+  source: string | null
+  deliveryStatus: string
+  readAt: string | null
+  createdAt: string
+}
+
+export type NotificationDispatch = {
+  created: AppNotification | null
+  targetCount: number
+  createdCount: number
+  pushSuccessCount: number
+  pushPartialFailureCount: number
+  pushAttempted: boolean
+  pushSent: boolean
+  pushError: string | null
+}
+
+function isLocalLikeHost(hostname: string) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname.startsWith('192.168.')
+}
+
+function resolveApiUrl() {
+  const configured = (import.meta.env.VITE_API_URL ?? '/api').trim()
+  if (configured.startsWith('/')) return configured.replace(/\/$/, '')
+  if (typeof window === 'undefined') return configured
+
+  try {
+    const apiUrl = new URL(configured)
+    const pageUrl = new URL(window.location.origin)
+    if (isLocalLikeHost(apiUrl.hostname) && isLocalLikeHost(pageUrl.hostname) && apiUrl.hostname !== pageUrl.hostname) {
+      apiUrl.hostname = pageUrl.hostname
+    }
+    return apiUrl.toString().replace(/\/$/, '')
+  } catch {
+    return configured
+  }
+}
+
+const API_URL = resolveApiUrl()
+// Dev stand-in for the acting user, used only when no Supabase session is present.
 // Writes that need an author (notices, visitor approvals) send this as `x-user-id`.
 const DEV_USER_ID = import.meta.env.VITE_DEV_USER_ID as string | undefined
 
-// Bridge to the Clerk session token. A React component registers this getter
-// (see AuthBridge); when signed in it returns a JWT the API verifies as a
+// Bridge to the Supabase session token. A React component registers this getter;
+// when signed in it returns a JWT the API verifies as a
 // Bearer token, taking precedence over the dev header.
 let tokenGetter: (() => Promise<string | null>) | null = null
 export function setAuthTokenGetter(fn: (() => Promise<string | null>) | null) {
@@ -188,6 +246,9 @@ const json = (body: unknown) => JSON.stringify(body)
 
 export const apiClient = {
   health: () => api<{ status: string }>('/health'),
+  me: () => api<AuthMeResponse>('/auth/me'),
+  updateMe: (body: { name?: string; phone?: string }) =>
+    api<AuthMeResponse>('/auth/me', { method: 'PATCH', body: json(body) }),
 
   // Society
   getSociety: () => api<SocietyConfig | null>('/society'),
@@ -195,6 +256,7 @@ export const apiClient = {
 
   // Apartments
   listApartments: () => api<Apartment[]>('/apartments'),
+  listMyApartments: () => api<Apartment[]>('/apartments/mine'),
   createApartment: (body: CreateApartment) => api<Apartment>('/apartments', { method: 'POST', body: json(body) }),
   createApartmentsBulk: (body: CreateApartmentsBulk) =>
     api<{ count: number; apartments: Apartment[] }>('/apartments/bulk', { method: 'POST', body: json(body) }),
@@ -246,6 +308,13 @@ export const apiClient = {
   },
   createNotice: (body: CreateNotice) => api<Notice>('/notices', { method: 'POST', body: json(body) }),
   listNoticeReads: (id: string) => api<NoticeReadReceipt[]>(`/notices/${id}/reads`),
+  markNoticeRead: (id: string) => api<{ ok: boolean }>(`/notices/${id}/read`, { method: 'POST', body: json({}) }),
+  listNotifications: () => api<AppNotification[]>('/notifications'),
+  markNotificationRead: (id: string) => api<AppNotification>(`/notifications/${id}/read`, { method: 'POST' }),
+  registerDeviceToken: (body: { token: string; platform: string; provider?: string; deviceLabel?: string }) =>
+    api<{ ok: boolean }>('/notifications/register-device', { method: 'POST', body: json(body) }),
+  sendTestNotification: (body: { userId?: string; allResidents?: boolean; title: string; body: string; data?: Record<string, string> }) =>
+    api<NotificationDispatch>('/notifications/test', { method: 'POST', body: json(body) }),
 
   // Uploads (R2): raw file POST + auth-fetched object URL for display/download.
   uploadFile: async (file: File): Promise<{ key: string; url: string }> => {
@@ -283,6 +352,8 @@ export const apiClient = {
   updateHouseHelp: (id: string, body: UpdateHouseHelp) =>
     api<HouseHelp>(`/house-help/${id}`, { method: 'PUT', body: json(body) }),
   listHouseHelpAssignments: (id: string) => api<HouseHelpAssignment[]>(`/house-help/${id}/assignments`),
+  listHouseHelpForApartment: (apartmentId: string) =>
+    api<HouseHelpRow[]>(`/house-help?apartmentId=${apartmentId}`),
   assignHouseHelp: (id: string, apartmentId: string) =>
     api<HouseHelpAssignment>(`/house-help/${id}/assignments`, { method: 'POST', body: json({ apartmentId }) }),
   removeHouseHelpAssignment: (id: string, apartmentId: string) =>
