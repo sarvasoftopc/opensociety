@@ -10,7 +10,6 @@ import {
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,7 +25,7 @@ const time = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : '�
 function OnDutyNow() {
   const active = useQuery({ queryKey: ['duty-active'], queryFn: apiClient.listActiveDuty })
   return (
-    <Card>
+    <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>On duty now</CardTitle>
       </CardHeader>
@@ -34,18 +33,18 @@ function OnDutyNow() {
         <QueryState q={active} empty={active.isSuccess && active.data?.length === 0} emptyText="No guards on duty.">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Guard</TableHead>
-                <TableHead>Since</TableHead>
-                <TableHead>Clock-in location</TableHead>
+              <TableRow className="bg-slate-50/80">
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Guard</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Since</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Clock-in location</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {active.data?.map((s) => (
-                <TableRow key={s.id}>
+                <TableRow key={s.id} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                   <TableCell className="font-medium">{s.guardName ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{time(s.clockInAt)}</TableCell>
-                  <TableCell className="text-muted-foreground">{loc(s.clockInLat, s.clockInLng)}</TableCell>
+                  <TableCell className="text-slate-500">{time(s.clockInAt)}</TableCell>
+                  <TableCell className="text-slate-500">{loc(s.clockInLat, s.clockInLng)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -76,7 +75,7 @@ function ShiftReport() {
   )
 
   return (
-    <Card>
+    <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>Shift report</CardTitle>
       </CardHeader>
@@ -84,16 +83,17 @@ function ShiftReport() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="duty-from">From</Label>
-            <Input id="duty-from" type="date" className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input id="duty-from" type="date" className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50" value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="duty-to">To</Label>
-            <Input id="duty-to" type="date" className="w-40" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input id="duty-to" type="date" className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50" value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
           {(from || to) && (
             <Button
               variant="ghost"
               size="sm"
+              className="rounded-xl"
               onClick={() => {
                 setFrom('')
                 setTo('')
@@ -106,24 +106,26 @@ function ShiftReport() {
 
         <QueryState q={sessions} empty={sessions.isSuccess && rows.length === 0} emptyText="No shifts in this range.">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Hours per guard</p>
+            <p className="text-sm font-medium text-slate-700">Hours per guard</p>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Guard</TableHead>
-                  <TableHead className="text-right">Shifts</TableHead>
-                  <TableHead className="text-right">Hours</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Guard</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Shifts</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Hours</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {summary.map((s) => (
-                  <TableRow key={s.guardId}>
+                  <TableRow key={s.guardId} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                     <TableCell className="font-medium">{s.guardName}</TableCell>
                     <TableCell className="text-right">{s.sessions}</TableCell>
                     <TableCell className="text-right">{formatWorkedMinutes(s.totalMinutes)}</TableCell>
                     <TableCell className="text-right">
-                      {s.onDuty ? <Badge variant="default">On duty</Badge> : <Badge variant="secondary">Off</Badge>}
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${s.onDuty ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {s.onDuty ? 'On duty' : 'Off'}
+                      </span>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -132,23 +134,23 @@ function ShiftReport() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Shift log</p>
+            <p className="text-sm font-medium text-slate-700">Shift log</p>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Guard</TableHead>
-                  <TableHead>Clock-in</TableHead>
-                  <TableHead>Clock-out</TableHead>
-                  <TableHead className="text-right">Duration</TableHead>
-                  <TableHead className="text-right">Entries</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Guard</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Clock-in</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Clock-out</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Duration</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Entries</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                     <TableCell className="font-medium">{r.guardName ?? '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{time(r.clockInAt)}</TableCell>
-                    <TableCell className="text-muted-foreground">{time(r.clockOutAt)}</TableCell>
+                    <TableCell className="text-slate-500">{time(r.clockInAt)}</TableCell>
+                    <TableCell className="text-slate-500">{time(r.clockOutAt)}</TableCell>
                     <TableCell className="text-right">
                       {formatWorkedMinutes(dutySessionMinutes(r.clockInAt, r.clockOutAt))}
                     </TableCell>

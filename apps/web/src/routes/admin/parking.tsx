@@ -6,7 +6,6 @@ import { parkingSlotTypeSchema, parkingSlotStatus, summarizeParking } from '@ope
 
 import { apiClient, type ParkingSlotRow } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -36,11 +35,14 @@ function statusOf(slot: ParkingSlotRow) {
   )
 }
 
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
-  AVAILABLE: 'outline',
-  ASSIGNED: 'default',
-  TEMPORARY: 'secondary',
-  INACTIVE: 'secondary',
+function statusBadgeClass(status: string) {
+  switch (status) {
+    case 'ASSIGNED': return 'bg-emerald-50 text-emerald-700'
+    case 'TEMPORARY': return 'bg-amber-50 text-amber-700'
+    case 'AVAILABLE': return 'bg-blue-50 text-blue-700'
+    case 'INACTIVE': return 'bg-slate-100 text-slate-600'
+    default: return 'bg-slate-100 text-slate-600'
+  }
 }
 
 function AddSlot() {
@@ -74,7 +76,7 @@ function AddSlot() {
         <Label htmlFor="slot-no">Slot number</Label>
         <Input
           id="slot-no"
-          className="w-40"
+          className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50"
           placeholder="e.g. B1-05"
           value={slotNumber}
           onChange={(e) => setSlotNumber(e.target.value)}
@@ -83,7 +85,7 @@ function AddSlot() {
       <div className="space-y-1.5">
         <Label>Type</Label>
         <Select value={type} onValueChange={(v) => setType(v as ParkingSlotType)}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-32 h-11 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -95,11 +97,11 @@ function AddSlot() {
           </SelectContent>
         </Select>
       </div>
-      <label className="text-muted-foreground flex items-center gap-1.5 pb-2 text-sm">
+      <label className="text-slate-500 flex items-center gap-1.5 pb-2 text-sm">
         <input type="checkbox" checked={isVisitor} onChange={(e) => setIsVisitor(e.target.checked)} />
         Visitor slot
       </label>
-      <Button type="submit" disabled={!canSubmit}>
+      <Button type="submit" className="rounded-xl" disabled={!canSubmit}>
         {create.isPending ? 'Adding…' : 'Add slot'}
       </Button>
       {create.isError && <p className="text-destructive w-full text-sm">{(create.error as Error).message}</p>}
@@ -113,12 +115,14 @@ function VisitorParkingCard() {
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(undefined, { timeStyle: 'short' }) : '—')
 
   return (
-    <Card>
+    <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           Visitor parking
           {summary?.isFull && (
-            <Badge variant="destructive">Full — {summary.occupied}/{summary.total}</Badge>
+            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-rose-50 text-rose-700">
+              Full — {summary.occupied}/{summary.total}
+            </span>
           )}
         </CardTitle>
       </CardHeader>
@@ -129,32 +133,32 @@ function VisitorParkingCard() {
           emptyText="No visitor slots yet. Add one above with 'Visitor slot' ticked."
         >
           {summary && (
-            <p className="text-muted-foreground mb-4 text-sm">
+            <p className="text-slate-400 mb-4 text-sm">
               {summary.available} of {summary.total} free · {summary.occupied} occupied
             </p>
           )}
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Slot</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Visitor</TableHead>
-                <TableHead>Vehicle</TableHead>
-                <TableHead>Since</TableHead>
+              <TableRow className="bg-slate-50/80">
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Slot</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Visitor</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Vehicle</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Since</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {q.data?.slots.map((s) => (
-                <TableRow key={s.id} className={s.isActive ? undefined : 'opacity-60'}>
+                <TableRow key={s.id} className={`border-b border-slate-50 transition-colors hover:bg-slate-50/60 ${s.isActive ? '' : 'opacity-60'}`}>
                   <TableCell className="font-mono font-medium">{s.slotNumber}</TableCell>
                   <TableCell>
-                    <Badge variant={s.occupiedByEntryId ? 'default' : 'outline'}>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${s.occupiedByEntryId ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
                       {s.occupiedByEntryId ? 'Occupied' : 'Free'}
-                    </Badge>
+                    </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{s.visitorName ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono">{s.vehicleNumber ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{fmt(s.occupiedAt)}</TableCell>
+                  <TableCell className="text-slate-500">{s.visitorName ?? '—'}</TableCell>
+                  <TableCell className="text-slate-500 font-mono">{s.vehicleNumber ?? '—'}</TableCell>
+                  <TableCell className="text-slate-500 text-xs">{fmt(s.occupiedAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -195,7 +199,7 @@ function AssignControls({ slot, apartments }: { slot: ParkingSlotRow; apartments
 
   if (slot.apartmentId) {
     return (
-      <Button size="sm" variant="ghost" disabled={release.isPending} onClick={() => release.mutate()}>
+      <Button size="sm" variant="ghost" className="rounded-xl" disabled={release.isPending} onClick={() => release.mutate()}>
         {release.isPending ? '…' : 'Release'}
       </Button>
     )
@@ -204,7 +208,7 @@ function AssignControls({ slot, apartments }: { slot: ParkingSlotRow; apartments
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
       <Select value={apartmentId} onValueChange={setApartmentId}>
-        <SelectTrigger className="h-8 w-28">
+        <SelectTrigger className="h-8 w-28 rounded-xl border-slate-200 bg-slate-50">
           <SelectValue placeholder="Flat" />
         </SelectTrigger>
         <SelectContent>
@@ -215,14 +219,14 @@ function AssignControls({ slot, apartments }: { slot: ParkingSlotRow; apartments
           ))}
         </SelectContent>
       </Select>
-      <label className="text-muted-foreground flex items-center gap-1 text-xs">
+      <label className="text-slate-500 flex items-center gap-1 text-xs">
         <input type="checkbox" checked={temporary} onChange={(e) => setTemporary(e.target.checked)} />
         Temp
       </label>
       {temporary && (
-        <Input type="date" className="h-8 w-36" value={until} onChange={(e) => setUntil(e.target.value)} />
+        <Input type="date" className="h-8 w-36 rounded-xl border-slate-200 bg-slate-50" value={until} onChange={(e) => setUntil(e.target.value)} />
       )}
-      <Button size="sm" disabled={!canAssign} onClick={() => assign.mutate()}>
+      <Button size="sm" className="rounded-xl" disabled={!canAssign} onClick={() => assign.mutate()}>
         {assign.isPending ? '…' : 'Assign'}
       </Button>
     </div>
@@ -240,16 +244,20 @@ function SlotRow({ slot, apartments }: { slot: ParkingSlotRow; apartments: Apart
     iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—'
 
   return (
-    <TableRow className={slot.isActive ? undefined : 'opacity-60'}>
+    <TableRow className={`border-b border-slate-50 transition-colors hover:bg-slate-50/60 ${slot.isActive ? '' : 'opacity-60'}`}>
       <TableCell className="font-mono font-medium">{slot.slotNumber}</TableCell>
       <TableCell>
-        <Badge variant="secondary">{slot.type}</Badge>
+        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
+          {slot.type}
+        </span>
       </TableCell>
-      <TableCell className="text-muted-foreground">{slot.apartment ?? '—'}</TableCell>
+      <TableCell className="text-slate-500">{slot.apartment ?? '—'}</TableCell>
       <TableCell>
-        <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusBadgeClass(status)}`}>
+          {status}
+        </span>
         {slot.isTemporary && slot.assignedUntil && (
-          <span className="text-muted-foreground ml-1 text-xs">till {fmtDate(slot.assignedUntil)}</span>
+          <span className="text-slate-400 ml-1 text-xs">till {fmtDate(slot.assignedUntil)}</span>
         )}
       </TableCell>
       <TableCell className="text-right">
@@ -258,6 +266,7 @@ function SlotRow({ slot, apartments }: { slot: ParkingSlotRow; apartments: Apart
           <Button
             size="sm"
             variant={slot.isActive ? 'ghost' : 'default'}
+            className="rounded-xl"
             disabled={toggleActive.isPending}
             onClick={() => toggleActive.mutate()}
           >
@@ -271,13 +280,13 @@ function SlotRow({ slot, apartments }: { slot: ParkingSlotRow; apartments: Apart
 
 function SummaryCard({ summary }: { summary: ParkingSummary }) {
   const stat = (label: string, value: number) => (
-    <div className="flex flex-col">
-      <span className="text-2xl font-semibold">{value}</span>
-      <span className="text-muted-foreground text-xs">{label}</span>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-2xl font-semibold text-slate-800">{value}</span>
+      <span className="text-slate-400 text-xs">{label}</span>
     </div>
   )
   return (
-    <Card>
+    <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardContent className="flex flex-wrap gap-8 pt-6">
         {stat('Total', summary.total)}
         {stat('Available', summary.available)}
@@ -316,7 +325,7 @@ function ParkingPage() {
 
       <SummaryCard summary={summary} />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Add slot</CardTitle>
         </CardHeader>
@@ -327,7 +336,7 @@ function ParkingPage() {
 
       <VisitorParkingCard />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Resident slots</CardTitle>
         </CardHeader>
@@ -339,12 +348,12 @@ function ParkingPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Slot</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Flat</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Slot</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Type</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Flat</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

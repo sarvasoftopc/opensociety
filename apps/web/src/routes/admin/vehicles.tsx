@@ -6,7 +6,6 @@ import { vehicleTypeSchema } from '@opensociety/shared'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -66,7 +65,7 @@ function AddVehicle({ apartments }: { apartments: Apartment[] }) {
       <div className="space-y-1.5">
         <Label>Flat</Label>
         <Select value={apartmentId} onValueChange={setApartmentId}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-32 h-11 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue placeholder="Select flat" />
           </SelectTrigger>
           <SelectContent>
@@ -82,7 +81,7 @@ function AddVehicle({ apartments }: { apartments: Apartment[] }) {
         <Label htmlFor="v-reg">Reg. number</Label>
         <Input
           id="v-reg"
-          className="w-40"
+          className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50"
           placeholder="KA 01 AB 1234"
           value={registrationNumber}
           onChange={(e) => setRegistrationNumber(e.target.value)}
@@ -91,7 +90,7 @@ function AddVehicle({ apartments }: { apartments: Apartment[] }) {
       <div className="space-y-1.5">
         <Label>Type</Label>
         <Select value={type} onValueChange={(v) => setType(v as VehicleType)}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-32 h-11 rounded-xl border-slate-200 bg-slate-50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -105,13 +104,13 @@ function AddVehicle({ apartments }: { apartments: Apartment[] }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="v-make">Make</Label>
-        <Input id="v-make" className="w-40" placeholder="Honda City" value={make} onChange={(e) => setMake(e.target.value)} />
+        <Input id="v-make" className="w-40 h-11 rounded-xl border-slate-200 bg-slate-50" placeholder="Honda City" value={make} onChange={(e) => setMake(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="v-color">Color</Label>
-        <Input id="v-color" className="w-28" placeholder="White" value={color} onChange={(e) => setColor(e.target.value)} />
+        <Input id="v-color" className="w-28 h-11 rounded-xl border-slate-200 bg-slate-50" placeholder="White" value={color} onChange={(e) => setColor(e.target.value)} />
       </div>
-      <Button type="submit" disabled={mutation.isPending || !canSubmit}>
+      <Button type="submit" className="rounded-xl" disabled={mutation.isPending || !canSubmit}>
         {mutation.isPending ? 'Adding…' : 'Add vehicle'}
       </Button>
       {mutation.isError && <p className="text-destructive w-full text-sm">{(mutation.error as Error).message}</p>}
@@ -144,11 +143,11 @@ function VehicleRow({ vehicle, labelOf }: { vehicle: Vehicle; labelOf: (id: stri
     return (
       <TableRow>
         <TableCell>
-          <Input value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} className="h-8 w-36" />
+          <Input value={registrationNumber} onChange={(e) => setRegistrationNumber(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell>
           <Select value={type} onValueChange={(v) => setType(v as VehicleType)}>
-            <SelectTrigger className="h-8 w-28">
+            <SelectTrigger className="h-8 w-28 rounded-xl border-slate-200 bg-slate-50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -160,17 +159,17 @@ function VehicleRow({ vehicle, labelOf }: { vehicle: Vehicle; labelOf: (id: stri
             </SelectContent>
           </Select>
         </TableCell>
-        <TableCell className="text-muted-foreground">{labelOf(vehicle.apartmentId)}</TableCell>
+        <TableCell className="text-slate-500">{labelOf(vehicle.apartmentId)}</TableCell>
         <TableCell>
-          <Input value={make} onChange={(e) => setMake(e.target.value)} className="h-8 w-36" />
+          <Input value={make} onChange={(e) => setMake(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell />
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
-            <Button size="sm" disabled={save.isPending || !registrationNumber.trim()} onClick={() => save.mutate()}>
+            <Button size="sm" className="rounded-xl" disabled={save.isPending || !registrationNumber.trim()} onClick={() => save.mutate()}>
               {save.isPending ? '…' : 'Save'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setEditing(false)}>
               Cancel
             </Button>
           </div>
@@ -180,26 +179,31 @@ function VehicleRow({ vehicle, labelOf }: { vehicle: Vehicle; labelOf: (id: stri
   }
 
   return (
-    <TableRow className={vehicle.isActive ? undefined : 'opacity-60'}>
+    <TableRow className={`border-b border-slate-50 transition-colors hover:bg-slate-50/60 ${vehicle.isActive ? '' : 'opacity-60'}`}>
       <TableCell className="font-mono font-medium">{vehicle.registrationNumber}</TableCell>
       <TableCell>
-        <Badge variant="secondary">{vehicle.type}</Badge>
+        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
+          {vehicle.type}
+        </span>
       </TableCell>
-      <TableCell className="text-muted-foreground">{labelOf(vehicle.apartmentId)}</TableCell>
-      <TableCell className="text-muted-foreground">
+      <TableCell className="text-slate-500">{labelOf(vehicle.apartmentId)}</TableCell>
+      <TableCell className="text-slate-500">
         {[vehicle.make, vehicle.color].filter(Boolean).join(' · ') || '—'}
       </TableCell>
       <TableCell>
-        <Badge variant={vehicle.isActive ? 'default' : 'secondary'}>{vehicle.isActive ? 'Active' : 'Inactive'}</Badge>
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${vehicle.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+          {vehicle.isActive ? 'Active' : 'Inactive'}
+        </span>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setEditing(true)}>
             Edit
           </Button>
           <Button
             size="sm"
             variant={vehicle.isActive ? 'ghost' : 'default'}
+            className="rounded-xl"
             onClick={() => toggleActive.mutate()}
             disabled={toggleActive.isPending}
           >
@@ -216,7 +220,7 @@ function GateLog() {
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : '—')
 
   return (
-    <Card>
+    <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
       <CardHeader>
         <CardTitle>Gate log</CardTitle>
       </CardHeader>
@@ -224,30 +228,36 @@ function GateLog() {
         <QueryState q={log} empty={log.isSuccess && log.data?.length === 0} emptyText="No vehicles logged at the gate yet.">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Plate</TableHead>
-                <TableHead>Visitor</TableHead>
-                <TableHead>Flat</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead>Known</TableHead>
+              <TableRow className="bg-slate-50/80">
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Plate</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Visitor</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Flat</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Check-in</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Known</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {log.data?.map((r) => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} className="border-b border-slate-50 transition-colors hover:bg-slate-50/60">
                   <TableCell className="font-mono">{r.vehicleNumber ?? '—'}</TableCell>
                   <TableCell className="font-medium">{r.visitorName}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.apartment ?? '—'}</TableCell>
+                  <TableCell className="text-slate-500">{r.apartment ?? '—'}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{r.status}</Badge>
+                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600">
+                      {r.status}
+                    </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{fmt(r.checkInAt)}</TableCell>
+                  <TableCell className="text-slate-500">{fmt(r.checkInAt)}</TableCell>
                   <TableCell>
                     {r.registered ? (
-                      <Badge variant="default">Registered</Badge>
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+                        Registered
+                      </span>
                     ) : (
-                      <Badge variant="outline">Visitor</Badge>
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-blue-50 text-blue-700">
+                        Visitor
+                      </span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -271,7 +281,7 @@ function VehiclesPage() {
         description={`${vehicles.data?.length ?? 0} vehicle${vehicles.data?.length === 1 ? '' : 's'} registered`}
       />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Register vehicle</CardTitle>
         </CardHeader>
@@ -280,7 +290,7 @@ function VehiclesPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>All vehicles</CardTitle>
         </CardHeader>
@@ -292,13 +302,13 @@ function VehiclesPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Reg. number</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Flat</TableHead>
-                  <TableHead>Make / color</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Reg. number</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Type</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Flat</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Make / color</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

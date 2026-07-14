@@ -21,25 +21,29 @@ function StatCard({
   value,
   to,
   hint,
+  iconBg,
+  iconColor,
 }: {
   icon: LucideIcon
   label: string
   value: number | string
   to: string
   hint?: string
+  iconBg?: string
+  iconColor?: string
 }) {
   return (
-    <Link to={to} className="block">
-      <Card className="hover:border-ring transition-colors">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-muted-foreground text-sm font-medium">{label}</CardTitle>
-          <Icon className="text-muted-foreground size-4" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold">{value}</div>
-          {hint && <p className="text-muted-foreground mt-1 text-xs">{hint}</p>}
-        </CardContent>
-      </Card>
+    <Link to={to} className="block rounded-2xl">
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 hover:shadow-md hover:border-slate-200 transition-all">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-500">{label}</span>
+          <div className={`rounded-xl p-2 ${iconBg ?? 'bg-slate-50'}`}>
+            <Icon className={`size-4 ${iconColor ?? 'text-slate-500'}`} />
+          </div>
+        </div>
+        <div className="text-3xl font-bold text-slate-900 mt-3">{value}</div>
+        {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
+      </div>
     </Link>
   )
 }
@@ -84,17 +88,23 @@ function Overview() {
 
   return (
     <div>
-      <PageHeader
-        title="Overview"
-        description={society.data ? society.data.name : 'Society not configured yet'}
-      />
+      {/* Page header */}
+      <div className="mb-6">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Admin Console</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
+          {society.data ? society.data.name : 'Dashboard'}
+        </h1>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
         <StatCard
           icon={Building2}
           label="Apartments"
           value={apartments.data?.length ?? '—'}
           to="/admin/apartments"
+          iconBg="bg-cyan-50"
+          iconColor="text-cyan-600"
         />
         <StatCard
           icon={Users}
@@ -102,6 +112,8 @@ function Overview() {
           value={pending.data?.length ?? '—'}
           to="/admin/residents"
           hint="Awaiting approval"
+          iconBg="bg-amber-50"
+          iconColor="text-amber-600"
         />
         <StatCard
           icon={UserCheck}
@@ -109,121 +121,158 @@ function Overview() {
           value={visitors.data?.length ?? '—'}
           to="/admin/visitors"
           hint={`${pendingVisitors} pending`}
+          iconBg="bg-violet-50"
+          iconColor="text-violet-600"
         />
-        <StatCard icon={Megaphone} label="Notices" value={notices.data?.length ?? '—'} to="/admin/notices" />
+        <StatCard
+          icon={Megaphone}
+          label="Notices"
+          value={notices.data?.length ?? '—'}
+          to="/admin/notices"
+          iconBg="bg-emerald-50"
+          iconColor="text-emerald-600"
+        />
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Getting started</CardTitle>
-        </CardHeader>
-        <CardContent className="text-muted-foreground space-y-2 text-sm">
-          <p className="text-foreground">
-            New here? Run the{' '}
-            <Button asChild size="sm" className="mx-1 align-middle">
-              <Link to="/admin/setup">guided setup wizard</Link>
-            </Button>{' '}
-            to configure your society and import apartments in one flow — or follow the steps below.
-          </p>
-          <p>
-            1. Configure your society in <Link to="/admin/society" className="text-foreground underline">Society</Link>.
-          </p>
-          <p>
-            2. Add units in{' '}
-            <Link to="/admin/apartments" className="text-foreground underline">Apartments</Link> (single or bulk).
-          </p>
-          <p>
-            3. Approve residents as they sign up under{' '}
-            <Link to="/admin/residents" className="text-foreground underline">Residents</Link>.
-          </p>
-          <p>
-            4. Register gate staff in{' '}
-            <Link to="/admin/guards" className="text-foreground underline">Guards</Link>.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Getting started card */}
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 mb-6">
+        <p className="text-base font-bold text-slate-900 mb-4">Getting started</p>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start gap-3">
+            <div className="h-6 w-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+              1
+            </div>
+            <p className="text-sm text-slate-600">
+              Configure your society in{' '}
+              <Link to="/admin/society" className="text-slate-900 font-medium underline underline-offset-2">
+                Society
+              </Link>
+              .
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="h-6 w-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+              2
+            </div>
+            <p className="text-sm text-slate-600">
+              Add units in{' '}
+              <Link to="/admin/apartments" className="text-slate-900 font-medium underline underline-offset-2">
+                Apartments
+              </Link>{' '}
+              (single or bulk).
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="h-6 w-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+              3
+            </div>
+            <p className="text-sm text-slate-600">
+              Approve residents as they sign up under{' '}
+              <Link to="/admin/residents" className="text-slate-900 font-medium underline underline-offset-2">
+                Residents
+              </Link>
+              .
+            </p>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="h-6 w-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center shrink-0">
+              4
+            </div>
+            <p className="text-sm text-slate-600">
+              Register gate staff in{' '}
+              <Link to="/admin/guards" className="text-slate-900 font-medium underline underline-offset-2">
+                Guards
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-6">
+      {/* Push notification card */}
+      <div className="mb-6">
         <PushNotificationCard />
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Test notifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Search for one resident or send one notification to every resident at once. Even before device push succeeds, SarvaSociety still creates in-app notification records for the targeted residents.
+      {/* Test notifications card */}
+      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
+        <p className="text-base font-bold text-slate-900 mb-1">Test push notifications</p>
+        <p className="text-sm text-slate-500 mb-5">
+          Search for one resident or send a notification to every resident at once. SarvaSociety always creates in-app notification records for targeted residents.
+        </p>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+          <div className="flex flex-col gap-1.5">
+            <Label>Target mode</Label>
+            <Select value={targetMode} onValueChange={(value) => setTargetMode(value as 'resident' | 'all-residents')}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="resident">Single resident</SelectItem>
+                <SelectItem value="all-residents">All residents</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="resident-search">Search resident</Label>
+            <Input
+              id="resident-search"
+              value={residentSearch}
+              onChange={(e) => setResidentSearch(e.target.value)}
+              placeholder={targetMode === 'all-residents' ? 'Broadcast mode selected' : 'Search by name, email, or phone'}
+              disabled={targetMode === 'all-residents'}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Resident</Label>
+            <Select value={targetId} onValueChange={setTargetId} disabled={targetMode === 'all-residents'}>
+              <SelectTrigger>
+                <SelectValue placeholder={targetMode === 'all-residents' ? 'All residents selected' : 'Choose resident'} />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredResidentTargets.map((target) => (
+                  <SelectItem key={target.id} value={target.id}>
+                    {target.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="notif-title">Title</Label>
+            <Input id="notif-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="notif-body">Body</Label>
+            <Input id="notif-body" value={body} onChange={(e) => setBody(e.target.value)} />
+          </div>
+        </div>
+
+        <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm text-slate-600 mb-4">
+          {targetMode === 'all-residents'
+            ? `Broadcast target: all ${residentTargets.length} active residents`
+            : `Targeting: ${targetId ? filteredResidentTargets.find((target) => target.id === targetId)?.label ?? 'selected resident' : 'choose one resident'}`}
+        </div>
+
+        <button
+          className="bg-[#0f172a] text-white rounded-xl h-10 px-5 text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={sendTest.isPending || !title.trim() || !body.trim() || (targetMode === 'resident' && !targetId.trim())}
+          onClick={() => sendTest.mutate()}
+        >
+          {sendTest.isPending ? 'Sending…' : targetMode === 'all-residents' ? 'Send to all residents' : 'Send to selected resident'}
+        </button>
+
+        {sendTest.isSuccess ? (
+          <p className="mt-3 text-sm text-emerald-600">
+            Notifications created for {sendTest.data.createdCount} of {sendTest.data.targetCount} targeted residents.
+            {' '}Push attempted: {sendTest.data.pushAttempted ? 'yes' : 'no'}, push sent to {sendTest.data.pushSuccessCount} resident device target(s)
+            {sendTest.data.pushPartialFailureCount > 0 ? `, partial failures on ${sendTest.data.pushPartialFailureCount} resident send(s)` : ''}
+            {sendTest.data.pushError ? ` (${sendTest.data.pushError})` : ''}
           </p>
-          <div className="grid gap-3 md:grid-cols-4">
-            <div className="space-y-1.5">
-              <Label>Target mode</Label>
-              <Select value={targetMode} onValueChange={(value) => setTargetMode(value as 'resident' | 'all-residents')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="resident">Single resident</SelectItem>
-                  <SelectItem value="all-residents">All residents</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="resident-search">Search resident</Label>
-              <Input
-                id="resident-search"
-                value={residentSearch}
-                onChange={(e) => setResidentSearch(e.target.value)}
-                placeholder={targetMode === 'all-residents' ? 'Broadcast mode selected' : 'Search by resident name, email, or phone'}
-                disabled={targetMode === 'all-residents'}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Resident</Label>
-              <Select value={targetId} onValueChange={setTargetId} disabled={targetMode === 'all-residents'}>
-                <SelectTrigger>
-                  <SelectValue placeholder={targetMode === 'all-residents' ? 'All residents selected' : 'Choose resident'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredResidentTargets.map((target) => (
-                    <SelectItem key={target.id} value={target.id}>
-                      {target.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="notif-title">Title</Label>
-              <Input id="notif-title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="notif-body">Body</Label>
-              <Input id="notif-body" value={body} onChange={(e) => setBody(e.target.value)} />
-            </div>
-          </div>
-          <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-            {targetMode === 'all-residents'
-              ? `Broadcast target: all ${residentTargets.length} active residents`
-              : `Targeting: ${targetId ? filteredResidentTargets.find((target) => target.id === targetId)?.label ?? 'selected resident' : 'choose one resident'}`}
-          </div>
-          <Button
-            disabled={sendTest.isPending || !title.trim() || !body.trim() || (targetMode === 'resident' && !targetId.trim())}
-            onClick={() => sendTest.mutate()}
-          >
-            {sendTest.isPending ? 'Sending…' : targetMode === 'all-residents' ? 'Send to all residents' : 'Send to selected resident'}
-          </Button>
-          {sendTest.isSuccess ? (
-            <p className="text-sm text-emerald-600">
-              Notifications created for {sendTest.data.createdCount} of {sendTest.data.targetCount} targeted residents.
-              {' '}Push attempted: {sendTest.data.pushAttempted ? 'yes' : 'no'}, push sent to {sendTest.data.pushSuccessCount} resident device target(s)
-              {sendTest.data.pushPartialFailureCount > 0 ? `, partial failures on ${sendTest.data.pushPartialFailureCount} resident send(s)` : ''}
-              {sendTest.data.pushError ? ` (${sendTest.data.pushError})` : ''}
-            </p>
-          ) : null}
-          {sendTest.isError ? <p className="text-sm text-rose-500">{(sendTest.error as Error).message}</p> : null}
-        </CardContent>
-      </Card>
+        ) : null}
+        {sendTest.isError ? <p className="mt-3 text-sm text-rose-500">{(sendTest.error as Error).message}</p> : null}
+      </div>
     </div>
   )
 }

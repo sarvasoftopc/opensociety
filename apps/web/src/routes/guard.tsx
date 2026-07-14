@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Camera, Clock3, ShieldCheck, UserRoundCheck, Users, Waypoints } from 'lucide-react'
+import { Camera, ChevronRight, Clock3, LogOut, ShieldCheck, UserRoundCheck, Users, Waypoints } from 'lucide-react'
 
 import { apiClient } from '@/lib/api'
 import { useAuthSession } from '@/lib/auth-session'
@@ -41,177 +41,244 @@ function GuardPage() {
   const insideHelp = helpEntries.data?.filter((item) => !item.checkOutAt).length ?? 0
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(125,211,252,0.22),_transparent_24%),linear-gradient(180deg,#e9f4ff_0%,#f8fbff_45%,#eef5ff_100%)] px-3 py-5 text-slate-950">
+    <div className="min-h-screen bg-[#f0f4f8]">
       <PushPermissionModal />
 
-      <div className="mx-auto flex max-w-[430px] flex-col gap-4">
-        <div className="rounded-[34px] border border-white/70 bg-white/88 p-4 shadow-[0_22px_80px_rgba(120,148,190,0.18)] backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.26em] text-cyan-700">SarvaSociety guard</p>
-              <h1 className="mt-2 text-[2rem] leading-9 font-black text-slate-950">{meData.name}</h1>
-              <p className="mt-1 text-sm font-semibold text-slate-500">{meData.tenantSlug}</p>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-[20px] bg-slate-950 text-white">
-              <ShieldCheck className="size-6" />
+      <div className="mx-auto max-w-[430px] px-4 py-5 flex flex-col gap-4">
+
+        {/* ── HERO HEADER ── */}
+        <div className="bg-[#0f172a] rounded-3xl p-5 text-white">
+          {/* Top row */}
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold">
+              Sarvasociety Guard
+            </span>
+            <div className="bg-cyan-500/20 text-cyan-400 rounded-xl p-2">
+              <ShieldCheck className="size-4" />
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-3">
-            <MetricPill icon={UserRoundCheck} label="Gate queue" value={String(gateQueue.length)} />
-            <MetricPill icon={Clock3} label="On duty" value={String(onDuty)} />
-            <MetricPill icon={Users} label="Help inside" value={String(insideHelp)} />
+          {/* Guard info */}
+          <h1 className="text-2xl font-bold text-white mt-3">{meData.name}</h1>
+          <p className="text-sm text-slate-400 mt-0.5">{meData.tenantSlug}</p>
+
+          {/* Metric chips */}
+          <div className="grid grid-cols-3 gap-2 mt-5">
+            <MetricChip icon={UserRoundCheck} label="Gate Queue" value={String(gateQueue.length)} />
+            <MetricChip icon={Clock3} label="On Duty" value={String(onDuty)} />
+            <MetricChip icon={Users} label="Help Inside" value={String(insideHelp)} />
+          </div>
+
+          {/* Sign out */}
+          <button
+            onClick={() => signOut()}
+            className="mt-4 text-slate-400 text-xs flex items-center gap-1 hover:text-white transition-colors"
+          >
+            <LogOut className="size-3" />
+            Sign out
+          </button>
+        </div>
+
+        {/* ── GATE QUEUE ── */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-base font-bold text-slate-900">Gate Queue</span>
+            <span className="bg-amber-50 text-amber-700 text-xs font-bold rounded-full px-2.5 py-0.5">
+              {gateQueue.length}
+            </span>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {gateQueue.length === 0 ? (
+              <EmptyState icon={UserRoundCheck} text="No visitor queue right now." />
+            ) : (
+              gateQueue.map((visitor) => {
+                const statusClass =
+                  visitor.status === 'PENDING'
+                    ? 'bg-amber-50 text-amber-700'
+                    : visitor.status === 'APPROVED'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-blue-50 text-blue-700'
+                return (
+                  <div key={visitor.id} className="px-4 py-4 border-b border-slate-50 last:border-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-semibold text-slate-900 text-sm">{visitor.visitorName}</span>
+                      <span className={`${statusClass} rounded-full px-2.5 py-0.5 text-[11px] font-bold shrink-0`}>
+                        {visitor.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">
+                        {visitor.type}
+                      </span>
+                      {visitor.purpose ? (
+                        <span className="text-xs text-slate-400 truncate">{visitor.purpose}</span>
+                      ) : null}
+                    </div>
+                    {visitor.partnerName ? (
+                      <p className="text-xs text-slate-400 mt-1">{visitor.partnerName}</p>
+                    ) : null}
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
 
-        <PhoneCard title="Gate queue" subtitle="Visitors waiting for approval or check-in.">
-          <div className="max-h-[24rem] space-y-3 overflow-y-auto pr-1">
-            {gateQueue.map((visitor) => (
-              <div key={visitor.id} className="rounded-[24px] bg-white p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-bold text-slate-950">{visitor.visitorName}</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {visitor.type} · {visitor.partnerName ?? 'Direct visitor'}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">{visitor.purpose ?? 'No purpose added yet.'}</p>
+        {/* ── QUICK ACTIONS ── */}
+        <div>
+          <p className="text-base font-bold text-slate-900 mb-3">Quick Actions</p>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <ShortcutRow
+              icon={Waypoints}
+              iconClass="bg-cyan-50 text-cyan-700"
+              title="Register walk-in"
+              body="Search apartments, add visitor photo, partner name, and purpose before raising approval."
+            />
+            <ShortcutRow
+              icon={Camera}
+              iconClass="bg-violet-50 text-violet-700"
+              title="Attendance with photo"
+              body="Guard clock-in already supports checkpoint and photo capture in the guard workflow."
+            />
+            <ShortcutRow
+              icon={Users}
+              iconClass="bg-emerald-50 text-emerald-700"
+              title="House-help movement"
+              body="Track worker entry and exit so residents know who is inside the society."
+            />
+          </div>
+        </div>
+
+        {/* ── GUARD ROSTER ── */}
+        <div>
+          <p className="text-base font-bold text-slate-900 mb-3">Guard Roster</p>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {(guards.data ?? []).length === 0 ? (
+              <EmptyState icon={ShieldCheck} text="No guards in the roster." />
+            ) : (
+              (guards.data ?? []).map((guard) => (
+                <div key={guard.id} className="px-4 py-3.5 border-b border-slate-50 last:border-0 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-700 font-bold text-sm flex items-center justify-center shrink-0">
+                    {(guard.name ?? '?').charAt(0).toUpperCase()}
                   </div>
-                  <span className="rounded-full bg-cyan-50 px-3 py-1 text-[11px] font-bold text-cyan-700">{visitor.status}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm">{guard.name}</p>
+                    <p className="text-xs text-slate-400">{guard.employeeCode ?? 'No employee code'}</p>
+                  </div>
+                  {guard.isActive ? (
+                    <span className="bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold px-2.5 py-0.5 flex items-center gap-1 shrink-0">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Active
+                    </span>
+                  ) : (
+                    <span className="bg-slate-50 text-slate-400 rounded-full text-[10px] font-bold px-2.5 py-0.5 shrink-0">
+                      Inactive
+                    </span>
+                  )}
                 </div>
-              </div>
-            ))}
-            {gateQueue.length === 0 ? <EmptyCopy text="No visitor queue right now." /> : null}
+              ))
+            )}
           </div>
-        </PhoneCard>
+        </div>
 
-        <PhoneCard title="Guard shortcuts" subtitle="The core operating actions for a shift.">
-          <div className="grid gap-3">
-            <ShortcutRow icon={Waypoints} title="Register walk-in" body="Search apartments, add visitor photo, partner name, and purpose before raising approval." />
-            <ShortcutRow icon={Camera} title="Attendance with photo" body="Guard clock-in already supports checkpoint and photo capture in the guard workflow." />
-            <ShortcutRow icon={Users} title="House-help movement" body="Track worker entry and exit so residents know who is inside the society." />
-          </div>
-        </PhoneCard>
-
-        <PhoneCard title="Active guards" subtitle="Residents should be able to see who is currently posted in the society.">
-          <div className="space-y-3">
-            {(guards.data ?? []).map((guard) => (
-              <div key={guard.id} className="flex items-center justify-between gap-3 rounded-[24px] bg-white p-4 shadow-sm">
-                <div>
-                  <p className="font-bold text-slate-950">{guard.name}</p>
-                  <p className="mt-1 text-sm text-slate-500">{guard.employeeCode ?? 'No employee code'} · {guard.phone ?? 'No phone'}</p>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${guard.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                  {guard.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </PhoneCard>
-
-        <Button className="h-12 rounded-2xl" onClick={() => signOut()} variant="outline">
-          Sign out
-        </Button>
       </div>
     </div>
   )
 }
 
-function PhoneCard({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string
-  subtitle: string
-  children: React.ReactNode
-}) {
+/* ── METRIC CHIP ── */
+function MetricChip({ icon: Icon, label, value }: { icon: typeof Clock3; label: string; value: string }) {
   return (
-    <Card className="rounded-[30px] border-white/70 bg-white/88 shadow-[0_18px_50px_rgba(120,148,190,0.14)]">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-[1.75rem] font-black text-slate-950">{title}</CardTitle>
-        <p className="text-sm leading-6 text-slate-500">{subtitle}</p>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  )
-}
-
-function MetricPill({ icon: Icon, label, value }: { icon: typeof Clock3; label: string; value: string }) {
-  return (
-    <div className="rounded-[24px] bg-slate-50 p-4 text-center">
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-[18px] bg-white text-cyan-700 shadow-sm">
-        <Icon className="size-5" />
-      </div>
-      <p className="mt-3 text-2xl font-black text-slate-950">{value}</p>
-      <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">{label}</p>
+    <div className="bg-white/8 border border-white/10 rounded-2xl p-3 text-center">
+      <Icon className="size-4 text-cyan-400 mx-auto" />
+      <p className="text-xl font-bold text-white mt-1.5">{value}</p>
+      <p className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
     </div>
   )
 }
 
+/* ── SHORTCUT ROW ── */
 function ShortcutRow({
   icon: Icon,
+  iconClass,
   title,
   body,
 }: {
   icon: typeof Camera
+  iconClass: string
   title: string
   body: string
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-[24px] bg-white p-4 shadow-sm">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-cyan-50 text-cyan-800">
-        <Icon className="size-6" />
+    <div className="px-4 py-4 border-b border-slate-50 last:border-0 flex items-center gap-4">
+      <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${iconClass}`}>
+        <Icon className="size-5" />
       </div>
-      <div>
-        <p className="font-bold text-slate-950">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-slate-500">{body}</p>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-slate-900 text-sm">{title}</p>
+        <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{body}</p>
       </div>
+      <ChevronRight className="ml-auto text-slate-300 size-4 shrink-0" />
     </div>
   )
 }
 
-function EmptyCopy({ text }: { text: string }) {
-  return <p className="rounded-[22px] bg-slate-50 px-4 py-5 text-sm text-slate-500">{text}</p>
+/* ── EMPTY STATE ── */
+function EmptyState({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
+  return (
+    <div className="py-8 text-center">
+      <Icon className="text-slate-200 size-10 mx-auto" />
+      <p className="text-sm text-slate-400 mt-2">{text}</p>
+    </div>
+  )
 }
 
+/* ── STATE CARD ── */
 function StateCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <Card className="w-full max-w-xl rounded-[28px] border-slate-200/80 bg-white/95 shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-black text-slate-950">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-slate-500">{body}</p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-[#f0f4f8] flex items-start justify-center px-4">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 max-w-sm mx-auto mt-16 w-full">
+        <p className="font-bold text-slate-900 text-base">{title}</p>
+        <p className="text-sm text-slate-500 mt-2">{body}</p>
+      </div>
     </div>
   )
 }
 
+/* ── LOADING SHELL ── */
 function GuardLoadingShell({ title, body }: { title: string; body: string }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(125,211,252,0.22),_transparent_24%),linear-gradient(180deg,#e9f4ff_0%,#f8fbff_45%,#eef5ff_100%)] px-3 py-5 text-slate-950">
-      <div className="mx-auto flex max-w-[430px] flex-col gap-4">
-        <div className="rounded-[34px] border border-white/70 bg-white/88 p-4 shadow-[0_22px_80px_rgba(120,148,190,0.18)] backdrop-blur">
-          <div className="rounded-[28px] bg-[#182136] p-5 text-white">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.26em] text-cyan-200">SarvaSociety guard</p>
-            <h1 className="mt-3 text-[2rem] leading-9 font-black">{title}</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
+    <div className="min-h-screen bg-[#f0f4f8]">
+      <div className="mx-auto max-w-[430px] px-4 py-5 flex flex-col gap-4">
+        {/* Dark hero skeleton */}
+        <div className="bg-[#0f172a] rounded-3xl p-5 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="h-2.5 w-28 bg-white/10 rounded-full" />
+            <div className="bg-cyan-500/20 rounded-xl p-2">
+              <ShieldCheck className="size-4 text-cyan-400/40" />
+            </div>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <div className="h-24 rounded-[24px] bg-slate-50" />
-            <div className="h-24 rounded-[24px] bg-slate-50" />
-            <div className="h-24 rounded-[24px] bg-slate-50" />
+          <div className="mt-4 h-6 w-40 bg-white/10 rounded-full" />
+          <div className="mt-2 h-3 w-24 bg-white/10 rounded-full" />
+          <div className="grid grid-cols-3 gap-2 mt-5">
+            <div className="bg-white/8 border border-white/10 rounded-2xl p-3 h-20" />
+            <div className="bg-white/8 border border-white/10 rounded-2xl p-3 h-20" />
+            <div className="bg-white/8 border border-white/10 rounded-2xl p-3 h-20" />
           </div>
+          <div className="mt-4 h-3 w-20 bg-white/10 rounded-full" />
         </div>
-        <PhoneCard title="Loading profile" subtitle="Getting gate operations back in place.">
-          <div className="space-y-3">
-            <div className="h-24 rounded-[24px] bg-white shadow-sm" />
-            <div className="h-24 rounded-[24px] bg-white shadow-sm" />
-            <div className="h-24 rounded-[24px] bg-white shadow-sm" />
-          </div>
-        </PhoneCard>
+        {/* White card skeletons */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 animate-pulse space-y-3">
+          <div className="h-4 w-24 bg-slate-100 rounded-full" />
+          <div className="h-14 bg-slate-100 rounded-xl" />
+          <div className="h-14 bg-slate-100 rounded-xl" />
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 animate-pulse space-y-3">
+          <div className="h-4 w-28 bg-slate-100 rounded-full" />
+          <div className="h-14 bg-slate-100 rounded-xl" />
+          <div className="h-14 bg-slate-100 rounded-xl" />
+          <div className="h-14 bg-slate-100 rounded-xl" />
+        </div>
       </div>
     </div>
   )

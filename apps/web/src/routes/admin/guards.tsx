@@ -5,7 +5,6 @@ import type { CreateGuard, Guard } from '@opensociety/shared'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -45,22 +44,23 @@ function AddGuard() {
     >
       <div className="space-y-1.5">
         <Label htmlFor="g-name">Name</Label>
-        <Input id="g-name" placeholder="Ramesh Kumar" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input id="g-name" className="h-11 rounded-xl border-slate-200 bg-slate-50" placeholder="Ramesh Kumar" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="g-phone">Phone</Label>
-        <Input id="g-phone" placeholder="+91…" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <Input id="g-phone" className="h-11 rounded-xl border-slate-200 bg-slate-50" placeholder="+91…" value={phone} onChange={(e) => setPhone(e.target.value)} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="g-code">Employee code</Label>
         <Input
           id="g-code"
+          className="h-11 rounded-xl border-slate-200 bg-slate-50"
           placeholder="G-001"
           value={employeeCode}
           onChange={(e) => setEmployeeCode(e.target.value)}
         />
       </div>
-      <Button type="submit" disabled={mutation.isPending || !name.trim()}>
+      <Button type="submit" className="rounded-xl" disabled={mutation.isPending || !name.trim()}>
         {mutation.isPending ? 'Adding…' : 'Add guard'}
       </Button>
       {mutation.isError && (
@@ -102,21 +102,21 @@ function GuardRow({ guard }: { guard: Guard }) {
     return (
       <TableRow>
         <TableCell>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 w-36" />
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 w-36" />
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell>
-          <Input value={employeeCode} onChange={(e) => setEmployeeCode(e.target.value)} className="h-8 w-28" />
+          <Input value={employeeCode} onChange={(e) => setEmployeeCode(e.target.value)} className="h-8 w-full rounded-xl border-slate-200 bg-slate-50" />
         </TableCell>
         <TableCell />
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
-            <Button size="sm" disabled={save.isPending || !name.trim()} onClick={() => save.mutate()}>
+            <Button size="sm" className="rounded-xl" disabled={save.isPending || !name.trim()} onClick={() => save.mutate()}>
               {save.isPending ? '…' : 'Save'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+            <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setEditing(false)}>
               Cancel
             </Button>
           </div>
@@ -127,24 +127,27 @@ function GuardRow({ guard }: { guard: Guard }) {
 
   return (
     <>
-      <TableRow className={guard.isActive ? undefined : 'opacity-60'}>
+      <TableRow className={`border-b border-slate-50 transition-colors hover:bg-slate-50/60 ${guard.isActive ? '' : 'opacity-60'}`}>
         <TableCell className="font-medium">{guard.name}</TableCell>
-        <TableCell className="text-muted-foreground">{guard.phone ?? '—'}</TableCell>
-        <TableCell className="text-muted-foreground">{guard.employeeCode ?? '—'}</TableCell>
+        <TableCell className="text-slate-500">{guard.phone ?? '—'}</TableCell>
+        <TableCell className="text-slate-500">{guard.employeeCode ?? '—'}</TableCell>
         <TableCell>
-          <Badge variant={guard.isActive ? 'default' : 'secondary'}>{guard.isActive ? 'Active' : 'Inactive'}</Badge>
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${guard.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+            {guard.isActive ? 'Active' : 'Inactive'}
+          </span>
         </TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setShowDevice((s) => !s)}>
+            <Button size="sm" variant="ghost" className="rounded-xl" onClick={() => setShowDevice((s) => !s)}>
               {showDevice ? 'Hide device' : 'Device'}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+            <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setEditing(true)}>
               Edit
             </Button>
             <Button
               size="sm"
               variant={guard.isActive ? 'ghost' : 'default'}
+              className="rounded-xl"
               onClick={() => toggleActive.mutate()}
               disabled={toggleActive.isPending}
             >
@@ -155,8 +158,10 @@ function GuardRow({ guard }: { guard: Guard }) {
       </TableRow>
       {showDevice && (
         <TableRow>
-          <TableCell colSpan={5} className="bg-muted/40">
-            <GuardDevices guardId={guard.id} />
+          <TableCell colSpan={5} className="p-0">
+            <div className="bg-slate-50 rounded-xl p-3 m-2">
+              <GuardDevices guardId={guard.id} />
+            </div>
           </TableCell>
         </TableRow>
       )}
@@ -177,22 +182,22 @@ function GuardDevices({ guardId }: { guardId: string }) {
 
   return (
     <div className="space-y-2 py-1 text-sm">
-      <p className="font-medium">Bound device</p>
-      {devices.isLoading && <p className="text-muted-foreground">Loading…</p>}
+      <p className="font-medium text-slate-700">Bound device</p>
+      {devices.isLoading && <p className="text-slate-400">Loading…</p>}
       {devices.isSuccess && active.length === 0 && (
-        <p className="text-muted-foreground">No device bound — the guard&rsquo;s first clock-in will auto-bind their device.</p>
+        <p className="text-slate-400">No device bound — the guard&rsquo;s first clock-in will auto-bind their device.</p>
       )}
       {active.map((d) => (
         <div key={d.id} className="flex items-center gap-3">
           <span className="font-medium">{d.model ?? 'Unknown model'}</span>
-          <span className="text-muted-foreground text-xs">last active {fmt(d.lastActiveAt)}</span>
-          <Button size="sm" variant="outline" onClick={() => revoke.mutate(d.deviceId)} disabled={revoke.isPending}>
+          <span className="text-slate-400 text-xs">last active {fmt(d.lastActiveAt)}</span>
+          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => revoke.mutate(d.deviceId)} disabled={revoke.isPending}>
             {revoke.isPending ? '…' : 'Revoke'}
           </Button>
         </div>
       ))}
       {revoked.length > 0 && (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-slate-400 text-xs">
           Revoked: {revoked.map((d) => d.model ?? d.deviceId.slice(0, 8)).join(', ')}
         </p>
       )}
@@ -210,7 +215,7 @@ function GuardsPage() {
         description={`${guards.data?.length ?? 0} guard${guards.data?.length === 1 ? '' : 's'} registered`}
       />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>Register guard</CardTitle>
         </CardHeader>
@@ -219,7 +224,7 @@ function GuardsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardHeader>
           <CardTitle>All guards</CardTitle>
         </CardHeader>
@@ -231,12 +236,12 @@ function GuardsPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Employee code</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="bg-slate-50/80">
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Name</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Phone</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Employee code</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="text-right text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -6,7 +6,6 @@ import { residencyRelationSchema, userRoleSchema } from '@opensociety/shared'
 
 import { apiClient } from '../../lib/api'
 import { PageHeader, QueryState } from '@/components/admin/ui'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -28,10 +27,11 @@ const FILTERS: { label: string; value: UserStatus | 'ALL' }[] = [
   { label: 'Suspended', value: 'SUSPENDED' },
 ]
 
-const STATUS_VARIANT: Record<UserStatus, 'default' | 'secondary' | 'destructive'> = {
-  APPROVED: 'default',
-  PENDING: 'secondary',
-  SUSPENDED: 'destructive',
+function statusPillClass(status: UserStatus): string {
+  if (status === 'APPROVED') return 'bg-emerald-50 text-emerald-700'
+  if (status === 'PENDING') return 'bg-amber-50 text-amber-700'
+  if (status === 'SUSPENDED') return 'bg-rose-50 text-rose-700'
+  return 'bg-slate-100 text-slate-600'
 }
 
 function ApprovePanel({ user, onDone }: { user: User; onDone: () => void }) {
@@ -50,11 +50,11 @@ function ApprovePanel({ user, onDone }: { user: User; onDone: () => void }) {
   })
 
   return (
-    <div className="bg-muted/40 flex flex-wrap items-end gap-3 rounded-md p-3">
+    <div className="bg-slate-50 flex flex-wrap items-end gap-3 rounded-2xl p-4">
       <div className="space-y-1.5">
         <Label>Apartment</Label>
         <Select value={apartmentId} onValueChange={setApartmentId}>
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-44 rounded-xl border-slate-200 bg-white h-10">
             <SelectValue placeholder="Select unit" />
           </SelectTrigger>
           <SelectContent>
@@ -69,7 +69,7 @@ function ApprovePanel({ user, onDone }: { user: User; onDone: () => void }) {
       <div className="space-y-1.5">
         <Label>Relation</Label>
         <Select value={relation} onValueChange={(v) => setRelation(v as ResidencyRelation)}>
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36 rounded-xl border-slate-200 bg-white h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -81,19 +81,27 @@ function ApprovePanel({ user, onDone }: { user: User; onDone: () => void }) {
           </SelectContent>
         </Select>
       </div>
-      <label className="flex items-center gap-2 pb-2 text-sm">
-        <input
-          type="checkbox"
-          checked={isPrimary}
-          onChange={(e) => setIsPrimary(e.target.checked)}
-          className="accent-primary size-4"
-        />
+      <label className="flex items-center gap-2 pb-2 text-sm text-slate-700 cursor-pointer select-none">
+        <span
+          role="checkbox"
+          aria-checked={isPrimary}
+          tabIndex={0}
+          onClick={() => setIsPrimary((v) => !v)}
+          onKeyDown={(e) => e.key === ' ' && setIsPrimary((v) => !v)}
+          className={`inline-flex h-4 w-4 items-center justify-center rounded border transition-colors ${isPrimary ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-300'}`}
+        >
+          {isPrimary && (
+            <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 10 10" stroke="currentColor" strokeWidth={2}>
+              <path d="M1.5 5l2.5 2.5 4.5-4.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </span>
         Primary resident
       </label>
-      <Button onClick={() => mutation.mutate()} disabled={!apartmentId || mutation.isPending}>
+      <Button onClick={() => mutation.mutate()} disabled={!apartmentId || mutation.isPending} className="rounded-xl">
         {mutation.isPending ? 'Approving…' : 'Confirm'}
       </Button>
-      <Button variant="ghost" onClick={onDone}>
+      <Button variant="ghost" onClick={onDone} className="rounded-xl">
         Cancel
       </Button>
       {apartments.isSuccess && apartments.data?.length === 0 && (
@@ -112,7 +120,7 @@ function RoleSelect({ user }: { user: User }) {
   })
   return (
     <Select value={user.role} onValueChange={(v) => mutation.mutate(v as UserRole)} disabled={mutation.isPending}>
-      <SelectTrigger size="sm" className="w-32">
+      <SelectTrigger size="sm" className="w-32 rounded-xl border-slate-200 bg-slate-50">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -135,23 +143,27 @@ function ResidentsPage() {
   })
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Residents" description="Approve new residents and manage their roles." />
 
-      <div className="mb-4 flex gap-2">
+      <div className="flex gap-2">
         {FILTERS.map((f) => (
-          <Button
+          <button
             key={f.value}
-            size="sm"
-            variant={filter === f.value ? 'default' : 'outline'}
+            type="button"
             onClick={() => setFilter(f.value)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              filter === f.value
+                ? 'bg-slate-900 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
           >
             {f.label}
-          </Button>
+          </button>
         ))}
       </div>
 
-      <Card>
+      <Card className="border border-slate-100 rounded-2xl shadow-sm">
         <CardContent className="pt-6">
           <QueryState
             q={users}
@@ -160,25 +172,27 @@ function ResidentsPage() {
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="border-b border-slate-100">
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Name</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Contact</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Role</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Status</TableHead>
+                  <TableHead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.data?.map((u) => (
                   <Fragment key={u.id}>
-                    <TableRow>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{u.email ?? u.phone ?? '—'}</TableCell>
+                    <TableRow className="border-b border-slate-50 hover:bg-slate-50/60">
+                      <TableCell className="font-medium text-slate-800">{u.name}</TableCell>
+                      <TableCell className="text-slate-500">{u.email ?? u.phone ?? '—'}</TableCell>
                       <TableCell>
                         <RoleSelect user={u} />
                       </TableCell>
                       <TableCell>
-                        <Badge variant={STATUS_VARIANT[u.status]}>{u.status}</Badge>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusPillClass(u.status)}`}>
+                          {u.status}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
                         {u.status === 'PENDING' && (
@@ -186,6 +200,7 @@ function ResidentsPage() {
                             size="sm"
                             variant={approving === u.id ? 'secondary' : 'default'}
                             onClick={() => setApproving(approving === u.id ? null : u.id)}
+                            className="rounded-xl"
                           >
                             {approving === u.id ? 'Close' : 'Approve'}
                           </Button>
@@ -193,8 +208,8 @@ function ResidentsPage() {
                       </TableCell>
                     </TableRow>
                     {approving === u.id && (
-                      <TableRow>
-                        <TableCell colSpan={5}>
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell colSpan={5} className="py-2 px-4">
                           <ApprovePanel user={u} onDone={() => setApproving(null)} />
                         </TableCell>
                       </TableRow>

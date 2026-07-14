@@ -15,9 +15,9 @@ export const Route = createFileRoute('/admin/analytics')({ component: AnalyticsP
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="space-y-1">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className="text-2xl font-semibold">{value}</p>
+    <div className="flex flex-col gap-0.5">
+      <p className="text-slate-400 text-xs">{label}</p>
+      <p className="text-2xl font-semibold text-slate-800">{value}</p>
     </div>
   )
 }
@@ -36,7 +36,7 @@ function HourChart({ byHour }: { byHour: HourCount[] }) {
             className="bg-primary w-full rounded-t"
             style={{ height: `${(h.count / max) * 100}%`, minHeight: h.count > 0 ? 2 : 0 }}
           />
-          {h.hour % 3 === 0 && <span className="text-muted-foreground text-[10px]">{h.hour}</span>}
+          {h.hour % 3 === 0 && <span className="text-slate-400 text-[10px]">{h.hour}</span>}
         </div>
       ))}
     </div>
@@ -45,16 +45,16 @@ function HourChart({ byHour }: { byHour: HourCount[] }) {
 
 function TypeBars({ byType }: { byType: TypeCount[] }) {
   const max = Math.max(1, ...byType.map((t) => t.count))
-  if (byType.length === 0) return <p className="text-muted-foreground text-sm">No visitors in this range.</p>
+  if (byType.length === 0) return <p className="text-slate-400 text-sm">No visitors in this range.</p>
   return (
     <div className="space-y-3">
       {byType.map((t) => (
         <div key={t.type} className="flex items-center gap-3">
           <span className="w-24 text-sm font-medium">{t.type}</span>
-          <div className="bg-muted h-3 flex-1 overflow-hidden rounded">
-            <div className="bg-primary h-3 rounded" style={{ width: `${(t.count / max) * 100}%` }} />
+          <div className="bg-slate-100 h-3 flex-1 overflow-hidden rounded-full">
+            <div className="bg-primary h-3 rounded-full" style={{ width: `${(t.count / max) * 100}%` }} />
           </div>
-          <span className="text-muted-foreground w-10 text-right text-sm">{t.count}</span>
+          <span className="text-slate-400 w-10 text-right text-sm">{t.count}</span>
         </div>
       ))}
     </div>
@@ -63,16 +63,16 @@ function TypeBars({ byType }: { byType: TypeCount[] }) {
 
 function LabelBars({ rows, empty }: { rows: LabelCount[]; empty: string }) {
   const max = Math.max(1, ...rows.map((r) => r.count))
-  if (rows.length === 0) return <p className="text-muted-foreground text-sm">{empty}</p>
+  if (rows.length === 0) return <p className="text-slate-400 text-sm">{empty}</p>
   return (
     <div className="space-y-3">
       {rows.map((r) => (
         <div key={r.label} className="flex items-center gap-3">
           <span className="w-28 text-sm font-medium">{r.label}</span>
-          <div className="bg-muted h-3 flex-1 overflow-hidden rounded">
-            <div className="bg-primary h-3 rounded" style={{ width: `${(r.count / max) * 100}%` }} />
+          <div className="bg-slate-100 h-3 flex-1 overflow-hidden rounded-full">
+            <div className="bg-primary h-3 rounded-full" style={{ width: `${(r.count / max) * 100}%` }} />
           </div>
-          <span className="text-muted-foreground w-10 text-right text-sm">{r.count}</span>
+          <span className="text-slate-400 w-10 text-right text-sm">{r.count}</span>
         </div>
       ))}
     </div>
@@ -93,7 +93,7 @@ function DowChart({ rows }: { rows: DowCount[] }) {
             className="bg-primary w-full rounded-t"
             style={{ height: `${(r.count / max) * 100}%`, minHeight: r.count > 0 ? 2 : 0 }}
           />
-          <span className="text-muted-foreground text-[10px]">{dayOfWeekLabel(r.dow)}</span>
+          <span className="text-slate-400 text-[10px]">{dayOfWeekLabel(r.dow)}</span>
         </div>
       ))}
     </div>
@@ -107,7 +107,7 @@ function OpsSection() {
   return (
     <>
       {help.data && (
-        <Card>
+        <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle>House help</CardTitle>
           </CardHeader>
@@ -117,11 +117,11 @@ function OpsSection() {
               <Stat label="Total visits logged" value={String(help.data.totalAttendance)} />
             </div>
             <div>
-              <p className="text-muted-foreground mb-3 text-xs font-medium uppercase">Most employed types</p>
+              <p className="text-slate-400 mb-3 text-xs font-bold uppercase tracking-[0.12em]">Most employed types</p>
               <LabelBars rows={help.data.byType} empty="No house help registered." />
             </div>
             <div>
-              <p className="text-muted-foreground mb-3 text-xs font-medium uppercase">Attendance by day (IST)</p>
+              <p className="text-slate-400 mb-3 text-xs font-bold uppercase tracking-[0.12em]">Attendance by day (IST)</p>
               <DowChart rows={help.data.attendanceByDow} />
             </div>
           </CardContent>
@@ -129,7 +129,7 @@ function OpsSection() {
       )}
 
       {maint.data && (
-        <Card>
+        <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
           <CardHeader>
             <CardTitle>Maintenance tickets</CardTitle>
           </CardHeader>
@@ -143,11 +143,11 @@ function OpsSection() {
               />
             </div>
             <div>
-              <p className="text-muted-foreground mb-3 text-xs font-medium uppercase">By category</p>
+              <p className="text-slate-400 mb-3 text-xs font-bold uppercase tracking-[0.12em]">By category</p>
               <LabelBars rows={maint.data.byCategory} empty="No tickets yet." />
             </div>
             <div>
-              <p className="text-muted-foreground mb-3 text-xs font-medium uppercase">By status</p>
+              <p className="text-slate-400 mb-3 text-xs font-bold uppercase tracking-[0.12em]">By status</p>
               <LabelBars rows={maint.data.byStatus} empty="No tickets yet." />
             </div>
           </CardContent>
@@ -181,19 +181,20 @@ function AnalyticsPage() {
         description="Visitor footfall, house-help attendance, and maintenance insights."
       />
 
-      <Card>
+      <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
         <CardContent className="flex flex-wrap items-end gap-4 pt-6">
           <div className="space-y-1.5">
             <Label htmlFor="from">From</Label>
-            <Input id="from" type="date" className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input id="from" type="date" className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50" value={from} onChange={(e) => setFrom(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="to">To</Label>
-            <Input id="to" type="date" className="w-40" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input id="to" type="date" className="w-40 h-10 rounded-xl border-slate-200 bg-slate-50" value={to} onChange={(e) => setTo(e.target.value)} />
           </div>
           {(from || to) && (
             <Button
               variant="ghost"
+              className="rounded-xl"
               onClick={() => {
                 setFrom('')
                 setTo('')
@@ -206,11 +207,11 @@ function AnalyticsPage() {
             <a
               href={csvHref}
               download="visitor-trends.csv"
-              className="border-input hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium transition-colors"
+              className="border-slate-200 hover:bg-slate-50 inline-flex h-9 items-center rounded-xl border px-4 text-sm font-medium transition-colors"
             >
               CSV
             </a>
-            <Button variant="outline" onClick={openPdf}>
+            <Button variant="outline" className="rounded-xl" onClick={openPdf}>
               PDF
             </Button>
           </div>
@@ -220,7 +221,7 @@ function AnalyticsPage() {
       <QueryState q={trends} empty={false} emptyText="">
         {trends.data && (
           <>
-            <Card>
+            <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
               <CardHeader>
                 <CardTitle>
                   {trends.data.from} → {trends.data.to}
@@ -237,7 +238,7 @@ function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
               <CardHeader>
                 <CardTitle>Entries by hour (IST)</CardTitle>
               </CardHeader>
@@ -246,7 +247,7 @@ function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-white border border-slate-100 rounded-2xl shadow-sm">
               <CardHeader>
                 <CardTitle>Visitor type breakdown</CardTitle>
               </CardHeader>
