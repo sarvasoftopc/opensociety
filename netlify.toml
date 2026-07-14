@@ -1,0 +1,13 @@
+[build]
+command = "pnpm --filter @opensociety/shared build && pnpm --filter @opensociety/web build"
+publish = "apps/web/dist/client"
+
+[build.environment]
+NODE_VERSION = "20"
+NETLIFY_USE_PNPM = "true"
+
+[dev]
+command = "pnpm --filter @opensociety/web dev -- --host 0.0.0.0 --port 3000"
+port = 3000
+targetPort = 3000
+publish = "apps/web/dist/client"
