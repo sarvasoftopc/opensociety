@@ -95,9 +95,10 @@ For a blank Supabase project, start with:
 pnpm install
 ```
 
-### 2. Configure env files
+### 2. Configure local-only env files
 
-Create/fill:
+This repo intentionally does not commit any `.env` or `.env.example` files.
+Create/fill these locally or in your hosting dashboards only:
 
 - `apps/api-fastapi/.env`
 - `apps/web/.env`
@@ -164,6 +165,89 @@ ngrok http 3000
 ```
 
 The web app uses same-origin `/api` calls and proxies them to FastAPI in local dev, so the single HTTPS URL can be used for admin, resident, and guard testing.
+
+## Deployment
+
+### Netlify
+
+This repo now includes `netlify.toml` at the repo root and the Netlify TanStack Start Vite plugin in `apps/web/vite.config.ts`.
+
+Use these Netlify settings:
+
+- Build command: `pnpm --filter @opensociety/web build`
+- Build command: `pnpm --filter @opensociety/shared build && pnpm --filter @opensociety/web build`
+- Publish directory: `apps/web/dist/client`
+- Node version: `20`
+
+Required Netlify environment variables:
+
+```bash
+VITE_API_URL=https://your-render-api.onrender.com
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_FIREBASE_API_KEY=your-firebase-web-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-firebase-sender-id
+VITE_FIREBASE_APP_ID=your-firebase-web-app-id
+VITE_FIREBASE_MEASUREMENT_ID=your-firebase-measurement-id
+VITE_FIREBASE_VAPID_KEY=your-firebase-web-push-vapid-key
+```
+
+Notes:
+
+- In production, point `VITE_API_URL` at the deployed Render API or your custom API domain.
+- For a single public app URL, keep the user-facing URL on Netlify and use the API domain only as an internal frontend config value.
+
+### Render
+
+This repo now includes `render.yaml` at the repo root for the FastAPI backend.
+
+Render service settings:
+
+- Root directory: `apps/api-fastapi`
+- Runtime: `python`
+- Build command: `pip install .`
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}`
+- Health check path: `/health`
+
+Required Render environment variables:
+
+```bash
+APP_ENV=production
+API_HOST=0.0.0.0
+API_PORT=10000
+DEFAULT_TENANT_SLUG=demo-society
+DATABASE_URL=postgresql://...
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+SUPABASE_JWT_SECRET=your-supabase-jwt-secret
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+PUBLIC_APP_URL=https://your-netlify-site.netlify.app
+UPLOADS_DIR=.uploads
+API_CORS_ORIGINS=https://your-netlify-site.netlify.app,https://app.yourdomain.com
+```
+
+Notes:
+
+- Use `FIREBASE_SERVICE_ACCOUNT_JSON` on Render so the backend can send push notifications without any committed admin-key file.
+- `PUBLIC_APP_URL` should point to the Netlify app URL.
+
+### Firebase file policy
+
+The mobile Firebase client files stay committed because native Expo builds need them:
+
+- `apps/mobile/google-services.json`
+- `apps/mobile/GoogleService-Info.plist`
+
+Do not commit:
+
+- any `.env` file
+- any `.env.example` file with live values
+- backend service-account secrets
 
 ## Test Accounts
 
